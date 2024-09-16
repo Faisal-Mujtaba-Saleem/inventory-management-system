@@ -9,7 +9,9 @@ urlpatterns = [
     path('items/create/', views.create_item, name='create_item'),
     path('items/search/', views.search_items, name='search_items'),
     path('items/<int:id>/stock/', views.get_item_stock, name='get_item_stock'),
-    path('items/<int:id>/stock/update/',
-         views.update_item_stock, name='update_item_stock'),
+    path(
+        'items/<int:id>/stock/update/',
+        views.update_item_stock, name='update_item_stock'
+    ),
     path('categories/', views.list_categories, name='list_categories'),
 ]
