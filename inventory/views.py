@@ -4,8 +4,6 @@ from django.http import JsonResponse
 # Create your views here.
 
 
-# Waleed
-
 def list_items(request):
     """
     Retrieves a list of items from the inventory.
@@ -18,13 +16,27 @@ def list_items(request):
     """
     try:
         # Retrieve all items
-
-        return JsonResponse()
+        return JsonResponse({})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
 
-# Waleed
+def create_item(request):
+    """
+    Creates a new item in the inventory.
+
+    Returns:
+        JsonResponse: A JSON response containing the created item
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        # Create item
+        return JsonResponse({})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
 
 def retrieve_item(request, id):
     """
@@ -41,13 +53,10 @@ def retrieve_item(request, id):
     """
     try:
         # Retrieve item by id
-
-        return JsonResponse()
+        return JsonResponse({})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-
-# Waleed
 
 def update_item(request, id):
     """
@@ -64,13 +73,10 @@ def update_item(request, id):
     """
     try:
         # Update item by id
-
-        return JsonResponse()
+        return JsonResponse({})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-
-# Waleed
 
 def delete_item(request, id):
     """
@@ -87,100 +93,132 @@ def delete_item(request, id):
     """
     try:
         # Delete item by id
-
-        return JsonResponse()
+        return JsonResponse({})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
 
-# Faisal
-
-def create_item(request):
+def list_items_by_category(request, category):
     """
-    Creates a new item in the inventory.
-
-    Returns:
-        JsonResponse: A JSON response containing the created item
-
-    Raises:
-        Exception: If there is an error with the database query
-    """
-
-    try:
-        # Create item
-
-        return JsonResponse()
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
-
-# Faisal
-
-def search_items(request):
-    """
-    Searches for items in the inventory by name or description.
-
-    Returns:
-        JsonResponse: A JSON response containing a list of items that match the search query
-
-    Raises:
-        Exception: If there is an error with the database query
-    """
-    try:
-        # Search items by name or description
-
-        return JsonResponse()
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
-
-# Faisal
-
-def get_item_stock(request, id):
-    """
-    Retrieves the stock level of a given item in the inventory.
+    Retrieves a list of items from the inventory filtered by category.
 
     Args:
-        id (int): The id of the item for which to retrieve the stock level
+        category (str): The category to filter the items by
 
     Returns:
-        JsonResponse: A JSON response containing the stock level of the item
+        JsonResponse: A JSON response containing a list of items
 
     Raises:
         Exception: If there is an error with the database query
     """
     try:
-        # Retrieve item stock level
-
-        return JsonResponse()
+        # Retrieve all items filtered by category
+        return JsonResponse({})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
 
-# Faisal
-
-def update_item_stock(request, id):
+def list_items_by_sub_category(request, sub_category):
     """
-    Updates the stock level of a given item in the inventory.
+    Retrieves a list of items from the inventory filtered by sub-category.
 
     Args:
-        id (int): The id of the item for which to update the stock level
+        sub_category (str): The sub-category to filter the items by
 
     Returns:
-        JsonResponse: A JSON response containing the updated item
+        JsonResponse: A JSON response containing a list of items
 
     Raises:
         Exception: If there is an error with the database query
     """
     try:
-        # Update item stock level
-
-        return JsonResponse()
+        # Retrieve all items filtered by sub-category
+        return JsonResponse({})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
 
-# Faisal
+def list_items_by_price(request, max_price):
+    """
+    Retrieves a list of items from the inventory filtered by price range.
+
+    Args:
+        min_price (int): The minimum price to filter the items by
+        max_price (int): The maximum price to filter the items by
+
+    Returns:
+        JsonResponse: A JSON response containing a list of items
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        # Retrieve all items filtered by price range
+        return JsonResponse({})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+def list_items_by_quantity(request, max_qty):
+    """
+    Retrieves a list of items from the inventory filtered by quantity range.
+
+    Args:
+        min_qty (int): The minimum quantity to filter the items by
+        max_qty (int): The maximum quantity to filter the items by
+
+    Returns:
+        JsonResponse: A JSON response containing a list of items
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        # Retrieve all items filtered by quantity range
+        return JsonResponse({})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+def retrieve_item_by_name(request, name):
+    """
+    Retrieves an item from the inventory by name.
+
+    Args:
+        name (str): The name to filter the items by
+
+    Returns:
+        JsonResponse: A JSON response containing the item
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        # Retrieve item by name
+        return JsonResponse({})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+def retrieve_item_by_sku(request, sku):
+    """
+    Retrieves an item from the inventory by sku.
+
+    Args:
+        sku (str): The sku to filter the items by
+
+    Returns:
+        JsonResponse: A JSON response containing the item
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        # Retrieve item by sku
+        return JsonResponse({})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
 
 def list_categories(request):
     """
@@ -194,7 +232,120 @@ def list_categories(request):
     """
     try:
         # Retrieve all categories
+        return JsonResponse({})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
-        return JsonResponse()
+
+def retrieve_category(request, id):
+    """
+    Retrieves a category from the inventory by id.
+
+    Args:
+        id (int): The id of the category to retrieve
+
+    Returns:
+        JsonResponse: A JSON response containing the category
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        # Retrieve category by id
+        return JsonResponse({})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+def create_stock(request):
+    """
+    Creates a new stock in the inventory.
+
+    Returns:
+        JsonResponse: A JSON response containing the created stock
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        # Create stock
+        return JsonResponse({})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+def list_stocks(request):
+    """
+    Retrieves a list of all stocks in the inventory.
+
+    Returns:
+        JsonResponse: A JSON response containing a list of stocks
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        # Retrieve all stocks
+        return JsonResponse({})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+def retrieve_stock(request, item):
+    """
+    Retrieves a stock from the inventory by id.
+
+    Args:
+        id (int): The id of the stock to retrieve
+
+    Returns:
+        JsonResponse: A JSON response containing the stock
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        # Retrieve stock by id
+        return JsonResponse({})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+def update_stock(request, item):
+    """
+    Updates a stock in the inventory by id.
+
+    Args:
+        id (int): The id of the stock to update
+
+    Returns:
+        JsonResponse: A JSON response containing the updated stock
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        # Update stock by id
+        return JsonResponse({})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+def delete_stock(request, item):
+    """
+    Deletes a stock from the inventory by id.
+
+    Args:
+        id (int): The id of the stock to delete
+
+    Returns:
+        JsonResponse: A JSON response containing a success message
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        # Delete stock by id
+        return JsonResponse({})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
