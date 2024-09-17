@@ -27,7 +27,6 @@ def list_items(request):
 
 # Waleed
 
-
 def retrieve_item(request, id):
     """
     Retrieves an item from the inventory by id.
