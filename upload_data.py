@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def upload_items_to_db(name, sku, description, price, qty_in_stock, category, sub_category):
+def upload_data_to_db(name, sku, description, price, qty_in_stock, category, sub_category):
     # Check if item exists in the database
     if Item.objects.filter(sku=sku).exists():
         logger.info(f'Item with SKU {sku} already exists')
@@ -55,25 +55,25 @@ if __name__ == "__main__":
     try:
         # Open and read the JSON file containing item data
         with open('db_items.json') as json_file:
-            items_to_upload = json.load(json_file).get('items_categories', [])
+            items_categories = json.load(json_file).get('items_categories', [])
 
             # Iterate through each item in the JSON data
-            for item in items_to_upload:
-                category = item.get('category', 'Unknown')
-                sub_category = item.get('sub_category', 'Unknown')
+            for category in items_categories:
+                category = category.get('category', '')
+                sub_category = category.get('sub_category', '')
 
                 # Process each item in the 'items' list
-                for item_data in item.get('items', []):
+                for item_to_upload in category.get('items', []):
                     logger.info('Processing item')
 
                     # Skip items that do not have a SKU
-                    if 'sku' not in item_data:
-                        logger.warning(f'Missing SKU in item: {item_data}')
+                    if 'sku' not in item_to_upload:
+                        logger.warning(f'Missing SKU in item: {item_to_upload}')
                         continue
 
                     # Upload the item to the database
-                    upload_items_to_db(
-                        category=category, sub_category=sub_category, **item_data
+                    upload_data_to_db(
+                        category=category, sub_category=sub_category, **item_to_upload
                     )
 
     except Exception as e:
