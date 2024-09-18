@@ -4,6 +4,8 @@ from django.http import JsonResponse
 # Create your views here.
 
 
+# Item views
+
 def list_items(request):
     """
     Retrieves a list of items from the inventory.
@@ -98,6 +100,8 @@ def delete_item(request, id):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+# List/Retrieve -or- Searching views
+
 def list_items_by_category(request, category):
     """
     Retrieves a list of items from the inventory filtered by category.
@@ -138,7 +142,7 @@ def list_items_by_sub_category(request, sub_category):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-def list_items_by_price(request, max_price):
+def list_items_by_price(request, price):
     """
     Retrieves a list of items from the inventory filtered by price range.
 
@@ -159,7 +163,7 @@ def list_items_by_price(request, max_price):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-def list_items_by_quantity(request, max_qty):
+def list_items_by_quantity(request, qty):
     """
     Retrieves a list of items from the inventory filtered by quantity range.
 
@@ -220,6 +224,8 @@ def retrieve_item_by_sku(request, sku):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+# Category views
+
 def list_categories(request):
     """
     Retrieves a list of all categories in the inventory.
@@ -257,22 +263,7 @@ def retrieve_category(request, id):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-def create_stock(request):
-    """
-    Creates a new stock in the inventory.
-
-    Returns:
-        JsonResponse: A JSON response containing the created stock
-
-    Raises:
-        Exception: If there is an error with the database query
-    """
-    try:
-        # Create stock
-        return JsonResponse({})
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
+# Stock views
 
 def list_stocks(request):
     """
@@ -326,26 +317,6 @@ def update_stock(request, item):
     """
     try:
         # Update stock by id
-        return JsonResponse({})
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
-
-def delete_stock(request, item):
-    """
-    Deletes a stock from the inventory by id.
-
-    Args:
-        id (int): The id of the stock to delete
-
-    Returns:
-        JsonResponse: A JSON response containing a success message
-
-    Raises:
-        Exception: If there is an error with the database query
-    """
-    try:
-        # Delete stock by id
         return JsonResponse({})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)

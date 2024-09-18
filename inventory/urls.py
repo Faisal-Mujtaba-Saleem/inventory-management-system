@@ -21,12 +21,12 @@ urlpatterns = [
         name='list_items_by_sub_category'
     ),
     path(
-        'items/price/<int:max_price>/',
+        'items/price/<int:price>/',
         views.list_items_by_price,
         name='list_items_by_price'
     ),
     path(
-        'items/quantity/<int:max_qty>/',
+        'items/quantity/<int:qty>/',
         views.list_items_by_quantity,
         name='list_items_by_quantity'
     ),

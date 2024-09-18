@@ -32,16 +32,16 @@ def upload_data_to_db(name, sku, description, price, qty_in_stock, category, sub
         sub_category=sub_category,
     )
     item.save()  # Save the new item to the database
-    # logger.info(f'Item {name} uploaded successfully!')
 
-    stock = Stock(item=item, name=name, sku=sku, qty_in_stock=qty_in_stock)
+    stock = Stock(item=item, name=item.name,
+                  sku=item.sku, qty_in_stock=qty_in_stock)
     stock.save()
 
     if Category.objects.filter(name=category).exists():
         logger.info(f'Category {category} already exists')
         return
 
-    category = Category(name=category, description=description)
+    category = Category(name=item.category, description=item.description)
     category.save()
 
     logger.info(
@@ -58,17 +58,18 @@ if __name__ == "__main__":
             items_categories = json.load(json_file).get('items_categories', [])
 
             # Iterate through each item in the JSON data
-            for category in items_categories:
-                category = category.get('category', '')
-                sub_category = category.get('sub_category', '')
+            for item_category in items_categories:
+                category = item_category.get('category', '')
+                sub_category = item_category.get('sub_category', '')
 
                 # Process each item in the 'items' list
-                for item_to_upload in category.get('items', []):
+                for item_to_upload in item_category.get('items', []):
                     logger.info('Processing item')
 
                     # Skip items that do not have a SKU
                     if 'sku' not in item_to_upload:
-                        logger.warning(f'Missing SKU in item: {item_to_upload}')
+                        logger.warning(f'Missing SKU in item: {
+                                       item_to_upload}')
                         continue
 
                     # Upload the item to the database

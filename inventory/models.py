@@ -9,7 +9,7 @@ class Item(models.Model):
         verbose_name="Item Name",
         max_length=50
     )
-    sku = models.CharField(verbose_name="SKU", max_length=50)
+    sku = models.CharField(verbose_name="SKU", unique=True, max_length=50)
     price = models.IntegerField(verbose_name="Price", default=0)
     description = models.TextField(
         verbose_name="Description",
