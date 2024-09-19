@@ -9,7 +9,7 @@ urlpatterns = [
     path('items/update/<int:id>/', views.update_item, name='update_item'),
     path('items/delete/<int:id>/', views.delete_item, name='delete_item'),
 
-    # Search Endpoints
+    # Filter Endpoints
     path(
         'items/category/<str:category>/',
         views.list_items_by_category,
@@ -21,25 +21,20 @@ urlpatterns = [
         name='list_items_by_sub_category'
     ),
     path(
-        'items/price/<int:price>/',
+        'items/price/<int:maxprice>/',
         views.list_items_by_price,
         name='list_items_by_price'
     ),
     path(
-        'items/quantity/<int:qty>/',
+        'items/quantity/<int:max_qty>/',
         views.list_items_by_quantity,
         name='list_items_by_quantity'
     ),
-    path(
-        'items/name/<str:name>/',
-        views.retrieve_item_by_name,
-        name='retrieve_item_by_name'
-    ),
-    path(
-        'items/sku/<str:sku>/',
-        views.retrieve_item_by_sku,
-        name='retrieve_item_by_sku'
-    ),
+
+    # Search Endpoint
+
+    path('items/search/',
+         views.search_items, name='search_items'),
 
     # Category Endpoints
     path('categories/', views.list_categories, name='list_categories'),

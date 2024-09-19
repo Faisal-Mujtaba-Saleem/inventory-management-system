@@ -100,7 +100,7 @@ def delete_item(request, id):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-# List/Retrieve -or- Searching views
+# Filter & Searching views
 
 def list_items_by_category(request, category):
     """
@@ -142,7 +142,7 @@ def list_items_by_sub_category(request, sub_category):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-def list_items_by_price(request, price):
+def list_items_by_max_price(request, max_price):
     """
     Retrieves a list of items from the inventory filtered by price range.
 
@@ -163,7 +163,7 @@ def list_items_by_price(request, price):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-def list_items_by_quantity(request, qty):
+def list_items_by_max_quantity(request, max_qty):
     """
     Retrieves a list of items from the inventory filtered by quantity range.
 
@@ -184,7 +184,7 @@ def list_items_by_quantity(request, qty):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-def retrieve_item_by_name(request, name):
+def search_items(request):
     """
     Retrieves an item from the inventory by name.
 
@@ -198,27 +198,13 @@ def retrieve_item_by_name(request, name):
         Exception: If there is an error with the database query
     """
     try:
-        # Retrieve item by name
-        return JsonResponse({})
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        name = request.GET.get('name', '')
+        sku = request.GET.get('sku', '')
+        qty = request.GET.get('qty', '')
+        category = request.GET.get('category', '')
+        sub_category = request.GET.get('sub_category', '')
+        price = request.GET.get('price', '')
 
-
-def retrieve_item_by_sku(request, sku):
-    """
-    Retrieves an item from the inventory by sku.
-
-    Args:
-        sku (str): The sku to filter the items by
-
-    Returns:
-        JsonResponse: A JSON response containing the item
-
-    Raises:
-        Exception: If there is an error with the database query
-    """
-    try:
-        # Retrieve item by sku
         return JsonResponse({})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
