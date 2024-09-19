@@ -1,4 +1,10 @@
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.core.serializers import serialize
+from django.shortcuts import get_object_or_404
+from django.http import Http404
+from .models import Item, Stock, Category
+import json
 
 
 # Create your views here.
@@ -6,23 +12,42 @@ from django.http import JsonResponse
 
 # Item views
 
+# Item views
+
+@csrf_exempt
 def list_items(request):
     """
-    Retrieves a list of items from the inventory.
+    Retrieves a list of item from the inventory.
 
     Returns:
-        JsonResponse: A JSON response containing a list of items.
+        JsonResponse: A JSON response containing a list of item.
 
     Raises:
         Exception: If there is an error with the database query.
     """
-    try:
-        # Retrieve all items
-        return JsonResponse({})
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+    if request.method == 'GET':
+        try:
+            # Retrieve all item
+            all_items = []
+            items_queryset = Item.objects.all()
+
+            for item in items_queryset:
+                all_items.append({
+                    "id": item.id,
+                    "name": item.name,
+                    "description": item.description,
+                    "category": item.category,
+                    "sub_category": item.sub_category,
+                    "recordedAt": item.recordedAt
+                })
+
+            return JsonResponse({"items": all_items})
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
 
 
+@csrf_exempt
 def create_item(request):
     """
     Creates a new item in the inventory.
@@ -33,13 +58,60 @@ def create_item(request):
     Raises:
         Exception: If there is an error with the database query
     """
-    try:
-        # Create item
-        return JsonResponse({})
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+    if request.method == 'POST':
+        try:
+            # Create item
+            data = json.loads(request.body)
+
+            name = data.get('name', '')
+            sku = data.get('sku', '')
+            price = data.get('price', 0)
+            description = data.get('description', '')
+            category = data.get('category', '')
+            sub_category = data.get('sub_category', '')
+            qty_in_stock = data.get('qty_in_stock', '')
+
+            item = Item(
+                name=name,
+                description=description,
+                sku=sku,
+                price=price,
+                category=category,
+                sub_category=sub_category,
+            )
+            item.save()
+
+            item_created = json.loads(
+                serialize('json', [item])
+            )[0]
+
+            stock = Stock(item=item, name=item.name,
+                          sku=item.sku, qty_in_stock=qty_in_stock)
+
+            stock.save()
+
+            if Category.objects.filter(name=category).exists():
+                return JsonResponse({
+                    "Message": "Successfully added the item",
+                    "item": item_created
+                })
+
+            category = Category(name=item.category,
+                                description=item.description)
+            category.save()
+
+            return JsonResponse({
+                "Message": "Successfully added the item",
+                "item": item_created
+            })
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": f"Request method {request.method} not allowed, use POST"}, status=405)
 
 
+@csrf_exempt
 def retrieve_item(request, id):
     """
     Retrieves an item from the inventory by id.
@@ -55,11 +127,27 @@ def retrieve_item(request, id):
     """
     try:
         # Retrieve item by id
-        return JsonResponse({})
+        item_retrieved = get_object_or_404(Item, id=id)
+
+        item_retrieved = json.loads(
+            serialize('json', [item_retrieved])
+        )[0]
+
+        return JsonResponse(
+            {
+                "message": f"Successfully retrieved the item with id {id}",
+                "item": item_retrieved
+            }
+        )
+
+    except Http404:
+        return JsonResponse({"error": f"Item with id {id} not found"}, status=404)
+
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@csrf_exempt
 def update_item(request, id):
     """
     Updates an item in the inventory by id.
@@ -73,13 +161,37 @@ def update_item(request, id):
     Raises:
         Exception: If there is an error with the database query
     """
-    try:
-        # Update item by id
-        return JsonResponse({})
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+
+    if request.method == 'PUT' or request.method == 'PATCH':
+        try:
+            # Update item by id
+            item = Item.objects.get(id=id)
+
+            data = json.loads(request.body)
+
+            if isinstance(data, dict):
+                for particular in data:
+                    if data[particular] != '':
+                        item.__setattr__(particular, data[particular])
+
+            else:
+                return JsonResponse({"error": "Invalid data format"}, status=400)
+
+            item_updated = json.loads(
+                serialize('json', [item])
+            )[0]
+
+            return JsonResponse({
+                "Message": f"The item with id {id} has been updated succesfully",
+                "item": item_updated
+            })
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": f"Request method {request.method} not allowed, use PUT or PATCH"}, status=405)
 
 
+@csrf_exempt
 def delete_item(request, id):
     """
     Deletes an item from the inventory by id.
@@ -93,11 +205,18 @@ def delete_item(request, id):
     Raises:
         Exception: If there is an error with the database query
     """
-    try:
-        # Delete item by id
-        return JsonResponse({})
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+    if request.method == 'DELETE':
+        try:
+            # Delete item by id
+            item_to_delete = Item.objects.get(id=id)
+            item_to_delete.delete()
+
+            return JsonResponse({"Message": f"The item with id {id} has been deleted succesfully"})
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": f"Request method {request.method} not allowed, use DELETE"}, status=405)
 
 
 # Filter & Searching views
