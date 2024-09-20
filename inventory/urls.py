@@ -7,9 +7,9 @@ urlpatterns = [
 
     path('items/', views.list_items, name='list_items'),
     path('items/create/', views.create_item, name='create_item'),
-    path('items/retrieve/<int:id>/', views.retrieve_item, name='retrieve_item'),
-    path('items/update/<int:id>/', views.update_item, name='update_item'),
-    path('items/delete/<int:id>/', views.delete_item, name='delete_item'),
+    path('items/retrieve/<str:slug>/', views.retrieve_item, name='retrieve_item'),
+    path('items/update/<str:slug>/', views.update_item, name='update_item'),
+    path('items/delete/<str:slug>/', views.delete_item, name='delete_item'),
 
 
     # Filter Endpoints
@@ -45,7 +45,7 @@ urlpatterns = [
     # Category Endpoints
 
     path('categories/', views.list_categories, name='list_categories'),
-    path('categories/retrieve/<int:id>/',
+    path('categories/retrieve/<str:slug>/',
          views.retrieve_category, name='retrieve_category'),
 
 
