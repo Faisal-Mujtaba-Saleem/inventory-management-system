@@ -53,6 +53,16 @@ urlpatterns = [
         views.retrieve_category,
         name='retrieve_category'
     ),
+    path(
+        "categories/update/<str:slug>/",
+        views.update_category,
+        name="update_category"
+    ),
+    path(
+        "category/delete/<str:slug>/",
+        views.delete_category,
+        name="delete_category"
+    ),
 
     # Stock Endpoints
 

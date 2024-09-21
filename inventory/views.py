@@ -3,19 +3,38 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
-from django.http import Http404
+from django.http import HttpResponseForbidden, Http404
 from .models import Item, Stock, Category
+from functools import wraps
 import json
 
 
-# Create your views here.
+# Utility functions
+
+def restrict_cors(view_fn):
+
+    @wraps(view_fn)
+    def modified_view(request, *args, **kwargs):
+        req_origin = request.headers.get('Origin')
+
+        if req_origin is not None and (req_origin == 'http://127.0.0.1:8000' or req_origin == 'http://localhost:8000'):
+            response = view_fn(request, *args, **kwargs)
+
+            if isinstance(response, JsonResponse):
+                return response
+
+        else:
+            return HttpResponseForbidden('Cross-origin request forbidden')
+
+    return modified_view
+
+
+# Views here.
 
 
 # Item views
 
-# Item views
-
-@csrf_exempt
+@restrict_cors
 def list_items(request):
     """
     Retrieves a list of item from the inventory.
@@ -40,7 +59,7 @@ def list_items(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-@csrf_exempt
+@restrict_cors
 def retrieve_item(request, slug):
     """
     Retrieves an item from the inventory by slug.
@@ -77,6 +96,7 @@ def retrieve_item(request, slug):
 
 
 @csrf_exempt
+@restrict_cors
 def create_item(request):
     """
     Creates a new item in the inventory.
@@ -141,6 +161,7 @@ def create_item(request):
 
 
 @csrf_exempt
+@restrict_cors
 def update_item(request, slug):
     """
     Updates an item in the inventory by slug.
@@ -194,6 +215,7 @@ def update_item(request, slug):
 
 
 @csrf_exempt
+@restrict_cors
 def delete_item(request, slug):
     """
     Deletes an item from the inventory by slug.
@@ -366,6 +388,52 @@ def retrieve_category(request, slug):
     try:
         # Retrieve category by slug
         return JsonResponse({})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+def update_category(request, slug):
+    """
+    Updates a category in the inventory by slug.
+
+    Args:
+        slug (str): The slug of the category to update
+
+    Returns:
+        JsonResponse: A JSON response containing the updated category
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        # Update category by slug
+        if request.method == 'PUT':
+            return JsonResponse({})
+
+        return JsonResponse({"error": f"Request method {request.method} not allowed, use UPDATE to update."}, status=405)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+def delete_category(request, slug):
+    """
+    Deletes a category from the inventory by slug.
+
+    Args:
+        slug (str): The slug of the category to delete
+
+    Returns:
+        JsonResponse: A JSON response containing a success message
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        # Update category by slug
+        if request.method == 'DeLETE':
+            return JsonResponse({})
+
+        return JsonResponse({"error": f"Request method {request.method} not allowed, use DELETE to delete."}, status=405)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
