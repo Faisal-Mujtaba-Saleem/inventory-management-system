@@ -24,4 +24,6 @@ admin.site.index_title = 'Inventory Administration'
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('inventory/', include('inventory.urls')),
+    path('users/', include('users.urls')),
+    path('accounts/', include('django.contrib.auth.urls')),
 ]

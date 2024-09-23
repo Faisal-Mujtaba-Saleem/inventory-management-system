@@ -3,36 +3,16 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
-from django.http import HttpResponseForbidden, Http404
+from django.http import Http404
 from .models import Item, Stock, Category
-from functools import wraps
+from .myutils import restrict_cors
 import json
-
-
-# Utility functions
-
-def restrict_cors(view_fn):
-
-    @wraps(view_fn)
-    def modified_view(request, *args, **kwargs):
-        req_origin = request.headers.get('Origin')
-
-        if req_origin is not None and (req_origin == 'http://127.0.0.1:8000' or req_origin == 'http://localhost:8000'):
-            response = view_fn(request, *args, **kwargs)
-
-            if isinstance(response, JsonResponse):
-                return response
-
-        else:
-            return HttpResponseForbidden('Cross-origin request forbidden')
-
-    return modified_view
 
 
 # Views here.
 
 
-# Item views
+# # Item views
 
 @restrict_cors
 def list_items(request):

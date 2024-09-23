@@ -10,6 +10,7 @@ urlpatterns = [
     path('items/update/<str:slug>/', views.update_item, name='update_item'),
     path('items/delete/<str:slug>/', views.delete_item, name='delete_item'),
 
+
     # Filter Endpoints
 
     path(
@@ -33,6 +34,7 @@ urlpatterns = [
         name='list_items_by_quantity'
     ),
 
+
     # Search Endpoint
 
     path(
@@ -40,6 +42,7 @@ urlpatterns = [
         views.search_items,
         name='search_items'
     ),
+
 
     # Category Endpoints
 
