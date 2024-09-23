@@ -1,58 +1,87 @@
-from django.contrib.auth.models import User
-from django.contrib.auth.models import Permission
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.core.serializers import serialize
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from django.core.serializers import serialize
 import json
+from .models import Token
+from .myutils import validateToken
 
-# Create your views here.
+# Register a new user
 
 
 @csrf_exempt
-def register_user(request):
+def registerUser(request):
     try:
         if request.method == "POST":
             req_body = json.loads(request.body)
 
-            username = req_body.get('username', '')
-            password = req_body.get('password', '')
-            email = req_body.get('email', '')
+            # Extract user details
+            firstname = req_body['firstname']
+            lastname = req_body['lastname']
+            username = req_body['username']
+            password = req_body['password']
+            email = req_body['email']
 
+            # Check if username or email already exists
             if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():
-                return JsonResponse({"error": f"username or email already exists"}, status=400)
+                return JsonResponse({"error": "Username or email already exists"}, status=400)
 
+            # Create user
             user = User.objects.create_user(
-                username=username, password=password, email=email
+                username=username,
+                password=password,
+                email=email,
+                first_name=firstname,
+                last_name=lastname
             )
-            user.save()
 
-            user = serialize("json", [user])
-            user = json.loads(user)[0]
+            token = Token(user=user)
+            token.save()
 
             return JsonResponse(
                 {
                     "status": "success",
                     "message": "User created successfully",
-                    "user": user
+                    "auth_key": token.key,
+                    "user": json.loads(
+                        serialize("json", [user])
+                    )[0]
                 }, status=201
             )
 
-        return JsonResponse({"error": f"Invalid request method {request.method}"}, status=405)
+        return JsonResponse({"error": "Invalid request method"}, status=405)
 
     except Exception as e:
-        print(str(e))
-        return JsonResponse(
-            {
-                "status": "failed",
-                "message": "An error occured while registering. Please try again.",
-            }, status=500,
-        )
+        print(str(e))  # Log the exception
+        return JsonResponse({"status": "failed", "message": "An error occurred while registering. Please try again."}, status=500)
 
+
+# Retrieve user information
 
 @csrf_exempt
-def login_user(request):
+@login_required
+def retrieveUser(request):
+    try:
+        user = json.loads(serialize('json', [request.user]))[0]
+        return JsonResponse(
+            {
+                "status": "success",
+                "message": "User retrieved successfully",
+                "user": user
+            }
+        )
+
+    except Exception as e:
+        print(str(e))  # Log the exception
+        return JsonResponse({"status": "failed", "message": "An error occurred while retrieving user. Please try again."}, status=500)
+
+
+# Login user
+
+@csrf_exempt
+def loginUser(request):
     try:
         if request.method == 'POST':
             req_body = json.loads(request.body)
@@ -60,137 +89,155 @@ def login_user(request):
             username = req_body.get('username', '')
             password = req_body.get('password', '')
 
-            user = authenticate(
-                username=username,
-                password=password
-            )
+            user = authenticate(username=username, password=password)
 
             if user is not None:
                 login(request, user)
+
                 return JsonResponse(
                     {
                         "status": "success",
                         "message": "Login successful",
+                        "auth_key": request.user.token.key
                     },
                     status=200
                 )
 
-            return JsonResponse(
-                {
-                    "status": "failed",
-                    "message": "Invalid credentials",
-                },
-                status=401
-            )
+            return JsonResponse({"status": "failed", "message": "Invalid credentials"}, status=401)
 
-        return JsonResponse({"error": f"Invalid request method {request.method}"}, status=405)
+        return JsonResponse({"error": "Invalid request method"}, status=405)
 
     except Exception as e:
-        print(str(e))
-        return JsonResponse(
-            {
-                "status": "failed",
-                "message": "An error occured while logging in. Please try again."
-            },
-            status=500
-        )
+        print(str(e))  # Log the exception
+        return JsonResponse({"status": "failed", "message": "An error occurred while logging in. Please try again."}, status=500)
 
+
+# Logout user
 
 @csrf_exempt
 @login_required
-def logout_user(request):
+def logoutUser(request):
     try:
         if request.method == 'POST':
             logout(request)
-
             return JsonResponse(
                 {
                     "status": "success",
-                    "message": "Logout successful",
+                    "message": "Logout successful"
                 },
                 status=200
             )
 
-        return JsonResponse({"error": f"Invalid request method {request.method}"}, status=405)
+        return JsonResponse({"error": "Invalid request method"}, status=405)
 
     except Exception as e:
-        print(str(e))
+        print(str(e))  # Log the exception
         return JsonResponse(
             {
                 "status": "failed",
-                "message": 'An error occured while logging out. Please try again.',
+                "message": 'An error occurred while logging out. Please try again.'
             },
             status=500
         )
 
 
+# Update user details
+
 @csrf_exempt
 @login_required
-def update_user(request):
+def updateUser(request):
     try:
-        if request.method == 'PUT' or request.method == 'PATCH':
+        if request.method in ['PUT', 'PATCH']:
             body = json.loads(request.body)
             user = request.user
 
+            # Update user attributes
             user.username = body.get('username', user.username)
             user.email = body.get('email', user.email)
 
+            # Update password if provided
             if 'password' in body:
                 user.set_password(body['password'])
-                # Keep the user authenticated/Logged in after password change
+                # Keep user logged in after password change
                 update_session_auth_hash(request, user)
 
             user.save()
-
-            user = serialize("json", [user])
-            user = json.loads(user)[0]
-
             return JsonResponse(
                 {
                     "status": "success",
                     "message": "User updated successfully",
-                    "user": user
+                    "user": json.loads(serialize("json", [user]))[0]
                 },
                 status=200
             )
 
-        return JsonResponse({"error": f"Invalid request method {request.method}"}, status=405)
+        return JsonResponse({"error": "Invalid request method"}, status=405)
 
     except Exception as e:
-        print(str(e))
+        print(str(e))  # Log the exception
         return JsonResponse(
             {
                 "status": "failed",
-                "message": 'An error occured while updating the user. Please try again.',
+                "message": 'An error occurred while updating the user. Please try again.'
             },
             status=500
         )
 
 
-@login_required
+# Delete user account
+
 @csrf_exempt
-def delete_user(request):
+@login_required
+def deleteUser(request):
     try:
         if request.method == 'DELETE':
             user = request.user
             user.delete()
-
             return JsonResponse(
                 {
                     "status": "success",
-                    "message": "User deleted successfully",
+                    "message": "User deleted successfully"
                 },
                 status=200
             )
 
-        return JsonResponse({"error": f"Invalid request method {request.method}"}, status=405)
+        return JsonResponse({"error": "Invalid request method"}, status=405)
 
     except Exception as e:
-        print(str(e))
+        print('Exception')  # Log the exception
         return JsonResponse(
             {
                 "status": "failed",
-                "message": 'An error occured while deleting the user. Please try again.',
+                "message": 'An error occurred while deleting the user. Please try again.'
             },
             status=500
         )
+
+
+# Refresh authentication key
+
+@csrf_exempt
+@login_required
+@validateToken
+def refreshAuthKey(request):
+    try:
+        if request.method == 'POST':
+            request.user.token.delete()
+
+            new_token = Token(user=request.user)
+            new_token.save()
+
+            return JsonResponse(
+                {
+                    "status": "success",
+                    "message": "Token refreshed successfully",
+                    "auth_key": new_token.key
+                },
+                status=200
+            )
+
+        return JsonResponse({"error": "Invalid request method"}, status=405)
+
+    except Exception as e:
+        print(str(e))  # Log the exception
+        return JsonResponse({"status": "failed", "message": 'An error occurred while refreshing token. Please try again.'}, status=500)
