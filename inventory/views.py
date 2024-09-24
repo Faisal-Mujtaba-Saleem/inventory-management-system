@@ -2,19 +2,19 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from django.shortcuts import get_object_or_404
+from django.utils.text import slugify
 from django.http import Http404
 from .models import Item, Stock, Category
+# from .myutils import restrict_cors
 import json
 
 
-# Create your views here.
+# Views here.
 
 
-# Item views
+# # Item views
 
-# Item views
-
-@csrf_exempt
+# @restrict_cors
 def list_items(request):
     """
     Retrieves a list of item from the inventory.
@@ -25,29 +25,58 @@ def list_items(request):
     Raises:
         Exception: If there is an error with the database query.
     """
-    if request.method == 'GET':
-        try:
-            # Retrieve all item
-            all_items = []
-            items_queryset = Item.objects.all()
+    try:
+        # Retrieve all item
+        items_queryset = Item.objects.all()
 
-            for item in items_queryset:
-                all_items.append({
-                    "id": item.id,
-                    "name": item.name,
-                    "description": item.description,
-                    "category": item.category,
-                    "sub_category": item.sub_category,
-                    "recordedAt": item.recordedAt
-                })
+        items_list = json.loads(
+            serialize('json', items_queryset)
+        )
 
-            return JsonResponse({"items": all_items})
+        return JsonResponse({"items": items_list})
 
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+# @restrict_cors
+def retrieve_item(request, slug):
+    """
+    Retrieves an item from the inventory by slug.
+
+    Args:
+        slug (str): The slug of the item to retrieve
+
+    Returns:
+        JsonResponse: A JSON response containing the item
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        # Retrieve item by slug
+        item_retrieved = get_object_or_404(Item, slug=slug)
+
+        item_retrieved = json.loads(
+            serialize('json', [item_retrieved])
+        )[0]
+
+        return JsonResponse(
+            {
+                "message": f"Successfully retrieved the item with slug {slug}",
+                "item": item_retrieved
+            }
+        )
+
+    except Http404:
+        return JsonResponse({"error": f"Item with slug {slug} not found"}, status=404)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 @csrf_exempt
+# @restrict_cors
 def create_item(request):
     """
     Creates a new item in the inventory.
@@ -71,6 +100,16 @@ def create_item(request):
             sub_category = data.get('sub_category', '')
             qty_in_stock = data.get('qty_in_stock', '')
 
+            if Category.objects.filter(name=category).exists():
+                category = Category.objects.get(name=category)
+
+            else:
+                category = Category(
+                    name=item.category,
+                    description=item.description
+                )
+                category.save()
+
             item = Item(
                 name=name,
                 description=description,
@@ -90,16 +129,6 @@ def create_item(request):
 
             stock.save()
 
-            if Category.objects.filter(name=category).exists():
-                return JsonResponse({
-                    "Message": "Successfully added the item",
-                    "item": item_created
-                })
-
-            category = Category(name=item.category,
-                                description=item.description)
-            category.save()
-
             return JsonResponse({
                 "Message": "Successfully added the item",
                 "item": item_created
@@ -112,48 +141,13 @@ def create_item(request):
 
 
 @csrf_exempt
-def retrieve_item(request, id):
+# @restrict_cors
+def update_item(request, slug):
     """
-    Retrieves an item from the inventory by id.
+    Updates an item in the inventory by slug.
 
     Args:
-        id (int): The id of the item to retrieve
-
-    Returns:
-        JsonResponse: A JSON response containing the item
-
-    Raises:
-        Exception: If there is an error with the database query
-    """
-    try:
-        # Retrieve item by id
-        item_retrieved = get_object_or_404(Item, id=id)
-
-        item_retrieved = json.loads(
-            serialize('json', [item_retrieved])
-        )[0]
-
-        return JsonResponse(
-            {
-                "message": f"Successfully retrieved the item with id {id}",
-                "item": item_retrieved
-            }
-        )
-
-    except Http404:
-        return JsonResponse({"error": f"Item with id {id} not found"}, status=404)
-
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
-
-@csrf_exempt
-def update_item(request, id):
-    """
-    Updates an item in the inventory by id.
-
-    Args:
-        id (int): The id of the item to update
+        slug (str): The slug of the item to update
 
     Returns:
         JsonResponse: A JSON response containing the updated item
@@ -164,27 +158,34 @@ def update_item(request, id):
 
     if request.method == 'PUT' or request.method == 'PATCH':
         try:
-            # Update item by id
-            item = Item.objects.get(id=id)
+            # Update item by slug
 
+            item = Item.objects.get(slug=slug)
             data = json.loads(request.body)
 
             if isinstance(data, dict):
-                for particular in data:
-                    if data[particular] != '':
-                        item.__setattr__(particular, data[particular])
+                for field in data:
+                    if field != 'slug':
+                        print(field)
+                        if field == 'sku':
+                            item.sku = data[field]
+                            item.slug = slugify(item.sku)
+                            continue
 
+                        item.__setattr__(field, data[field])
+                    else:
+                        return JsonResponse({"error": "Updating slug not allowed"}, status=400)
+
+                item.save()
             else:
-                return JsonResponse({"error": "Invalid data format"}, status=400)
+                return JsonResponse({"error": "Invalid data format. Please provide a dictionary"}, status=400)
 
             item_updated = json.loads(
                 serialize('json', [item])
             )[0]
 
-            item.save()
-
             return JsonResponse({
-                "Message": f"The item with id {id} has been updated succesfully",
+                "Message": f"The item with slug {slug} has been updated succesfully",
                 "item": item_updated
             })
         except Exception as e:
@@ -194,12 +195,13 @@ def update_item(request, id):
 
 
 @csrf_exempt
-def delete_item(request, id):
+# @restrict_cors
+def delete_item(request, slug):
     """
-    Deletes an item from the inventory by id.
+    Deletes an item from the inventory by slug.
 
     Args:
-        id (int): The id of the item to delete
+        slug (str): The slug of the item to delete
 
     Returns:
         JsonResponse: A JSON response containing a success message
@@ -209,11 +211,11 @@ def delete_item(request, id):
     """
     if request.method == 'DELETE':
         try:
-            # Delete item by id
-            item_to_delete = Item.objects.get(id=id)
+            # Delete item by slug
+            item_to_delete = Item.objects.get(slug=slug)
             item_to_delete.delete()
 
-            return JsonResponse({"Message": f"The item with id {id} has been deleted succesfully"})
+            return JsonResponse({"Message": f"The item with slug {slug} has been deleted succesfully"})
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
@@ -292,7 +294,6 @@ def list_items_by_max_price(request, max_price):
     if request.method == 'GET':
         try:
             # Retrieve all items filtered by price range
-
             max_price_related_items = Item.objects.filter(price__lte=max_price)
 
             a = json.loads(serialize('json', max_price_related_items))
@@ -320,7 +321,7 @@ def list_items_by_max_quantity(request, max_qty):
         try:
             # Retrieve all items filtered by quantity range
 
-            max_qty_related_items = Item.objects.filter(qty_in_stock__lte=max_qty)
+            max_qty_related_items = Stock.objects.filter(qty_in_stock__lte=max_qty)
 
             serialized_items = json.loads(serialize('json', max_qty_related_items))
 
@@ -378,7 +379,7 @@ def list_categories(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-def retrieve_category(request, id):
+def retrieve_category(request, slug):
     """
     Retrieves a category from the inventory by id.
 
@@ -392,8 +393,17 @@ def retrieve_category(request, id):
         Exception: If there is an error with the database query
     """
     try:
-        # Retrieve category by id
-        return JsonResponse({})
+        # Retrieve category by slug
+        category_retrieve = get_object_or_404(Category, slug=slug)
+
+        category = json.loads(
+            serialize(
+                'json',
+                [category_retrieve]
+            )
+        )
+
+        return JsonResponse({f"The category of slug {slug} is":category})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
@@ -423,7 +433,7 @@ def list_stocks(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-def retrieve_stock(request, item):
+def retrieve_stock(request, slug):
     """
     Retrieves a stock from the inventory by id.
 
@@ -438,7 +448,7 @@ def retrieve_stock(request, item):
     """
     try:
         # Retrieve item by id
-        item_retrieved = get_object_or_404(Stock, item=item)
+        item_retrieved = get_object_or_404(Stock, slug=slug)
 
         item_retrieved = json.loads(
             serialize('json', [item_retrieved])
@@ -446,7 +456,7 @@ def retrieve_stock(request, item):
 
         return JsonResponse(
             {
-                "message": f"Successfully retrieved the item with id {item}",
+                "message": f"Successfully retrieved the item with id {slug}",
                 "item": item_retrieved
             }
         )
@@ -458,7 +468,7 @@ def retrieve_stock(request, item):
         return JsonResponse({"error": str(e)}, status=500)
 
 @csrf_exempt
-def update_stock(request, item):
+def update_stock(request, slug):
     """
     Updates a stock in the inventory by id.
 
@@ -474,7 +484,7 @@ def update_stock(request, item):
     if request.method == 'PUT' or request.method == 'PATCH':
         try:
             # Update item by id
-            stock = Stock.objects.get(item=item)
+            stock = Stock.objects.get(slug=slug)
 
             data = json.loads(request.body)
 
