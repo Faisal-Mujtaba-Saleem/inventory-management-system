@@ -1,12 +1,13 @@
 from django.db import models
-from django.db.models.signals import post_delete
+from django.utils.text import slugify
+from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
 # Create your models here.
 
 
 class Category(models.Model):
-    id = models.AutoField(primary_key=True)
+    id = models.AutoField(verbose_name="ID", primary_key=True)
     name = models.CharField(
         verbose_name="Category Name",
         unique=True,
@@ -19,12 +20,43 @@ class Category(models.Model):
         max_length=50,
     )
 
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
+class SubCategory(models.Model):
+    id = models.AutoField(verbose_name="ID", primary_key=True)
+    name = models.CharField(
+        verbose_name="SubCategory Name",
+        unique=True,
+        max_length=50
+    )
+    slug = models.SlugField(
+        verbose_name="SubCategory Slug",
+        unique=True,
+        editable=False,
+        max_length=50,
+    )
+    category = models.ForeignKey(
+        to=Category,
+        verbose_name="category",
+        on_delete=models.CASCADE
+    )
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        return super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 
 
 class Item(models.Model):
-    id = models.AutoField(primary_key=True)
+    id = models.AutoField(verbose_name="ID", primary_key=True)
     name = models.CharField(
         verbose_name="Item Name",
         max_length=50
@@ -39,7 +71,7 @@ class Item(models.Model):
         editable=False,
         max_length=50,
     )
-    price = models.IntegerField(
+    price = models.PositiveIntegerField(
         verbose_name="Price",
         default=0
     )
@@ -52,52 +84,51 @@ class Item(models.Model):
         verbose_name="category",
         on_delete=models.CASCADE
     )
-    sub_category = models.CharField(
+    sub_category = models.ForeignKey(
+        to=SubCategory,
         verbose_name="sub_category",
-        max_length=50,
-
+        on_delete=models.CASCADE
     )
     recordedAt = models.DateTimeField(
         verbose_name="recordedAt",
         auto_now_add=True
     )
-    updatedAt = models.DateTimeField(verbose_name="updatedAt", auto_now=True)
+    updatedAt = models.DateTimeField(
+        verbose_name="updatedAt",
+        auto_now=True
+    )
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.sku)
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
 
 
 class Stock(models.Model):
-    id = models.AutoField(primary_key=True)
+    id = models.AutoField(verbose_name="ID", primary_key=True)
     item = models.OneToOneField(
         to='Item',
         on_delete=models.CASCADE,
         verbose_name='Item'
     )
-    name = models.CharField(
-        verbose_name="Name",
-        max_length=50
-    )
-    sku = models.CharField(
-        verbose_name="SKU",
-        unique=True, max_length=50
-    )
-    slug = models.SlugField(
-        verbose_name="Stock Slug",
-        unique=True,
-        editable=False,
-        max_length=50,
-    )
-    qty_in_stock = models.IntegerField(default=0)
+    qty_in_stock = models.PositiveIntegerField(default=0)
     last_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.item.name} - {self.qty_in_stock} in stock"
 
 
-@receiver(signal=post_delete, sender=Item)
-def delete_category_if_no_items_left(sender, instance, **kwargs):
-    category = instance.category
+class Supply(models.Model):
+    id = models.AutoField(verbose_name="ID", primary_key=True)
+    item = models.OneToOneField(
+        to='Item',
+        on_delete=models.CASCADE,
+        verbose_name='Item'
+    )
+    qty_supplied = models.PositiveIntegerField(default=0)
+    last_updated = models.DateTimeField(auto_now=True)
 
-    if not category.item_set.exists():
-        category.delete()
+    def __str__(self):
+        return f"{self.item.name} - {self.qty_in_stock} in stock"

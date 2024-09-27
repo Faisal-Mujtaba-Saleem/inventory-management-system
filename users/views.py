@@ -8,8 +8,11 @@ import json
 from .models import Token
 from .myutils import validateToken
 
-# Register a new user
 
+# Views for users
+
+
+# Register a new user
 
 @csrf_exempt
 def registerUser(request):
@@ -24,21 +27,27 @@ def registerUser(request):
             password = req_body['password']
             email = req_body['email']
 
-            # Check if username or email already exists
-            if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():
-                return JsonResponse({"error": "Username or email already exists"}, status=400)
-
             # Create user
-            user = User.objects.create_user(
-                username=username,
-                password=password,
-                email=email,
-                first_name=firstname,
-                last_name=lastname
-            )
+            user, is_created = User.objects.get_or_create(
+                username=username, email=email)
 
+            # Check if the user is created or already exists
+            if not is_created:
+                return JsonResponse({"status": "failed", "message": "User already exists"}, status=400)
+
+            # Set user details, first name and last name
+            user.first_name = firstname
+            user.last_name = lastname
+
+            # Set password
+            user.set_password(password)
+            user.save()
+
+            # Create token on behalf of user created
             token = Token(user=user)
             token.save()
+
+            login(request, user)
 
             return JsonResponse(
                 {
@@ -62,9 +71,12 @@ def registerUser(request):
 
 @csrf_exempt
 @login_required
+@validateToken
 def retrieveUser(request):
     try:
-        user = json.loads(serialize('json', [request.user]))[0]
+        user = json.loads(
+            serialize('json', [request.user])
+        )[0]
         return JsonResponse(
             {
                 "status": "success",
@@ -90,21 +102,29 @@ def loginUser(request):
             password = req_body.get('password', '')
 
             user = authenticate(username=username, password=password)
-
             if user is not None:
-                login(request, user)
+                token, is_created = Token.objects.get_or_create(user=user)
 
-                return JsonResponse(
-                    {
-                        "status": "success",
-                        "message": "Login successful",
-                        "auth_key": request.user.token.key
-                    },
-                    status=200
-                )
+                if is_created:
+                    login(request, user)
+                    token.save()
 
+                    return JsonResponse(
+                        {
+                            "status": "success",
+                            "message": "Login successful",
+                            "auth_key": token.key
+                        },
+                        status=200
+                    )
+
+                # User already logged in
+                return JsonResponse({"status": "failed", "message": "User already logged in"}, status=400)
+
+            # Invalid credentials
             return JsonResponse({"status": "failed", "message": "Invalid credentials"}, status=401)
 
+        # Invalid request method
         return JsonResponse({"error": "Invalid request method"}, status=405)
 
     except Exception as e:
@@ -116,10 +136,13 @@ def loginUser(request):
 
 @csrf_exempt
 @login_required
+@validateToken
 def logoutUser(request):
     try:
         if request.method == 'POST':
+            request.user.token.delete()
             logout(request)
+
             return JsonResponse(
                 {
                     "status": "success",
@@ -145,6 +168,7 @@ def logoutUser(request):
 
 @csrf_exempt
 @login_required
+@validateToken
 def updateUser(request):
     try:
         if request.method in ['PUT', 'PATCH']:
@@ -154,6 +178,8 @@ def updateUser(request):
             # Update user attributes
             user.username = body.get('username', user.username)
             user.email = body.get('email', user.email)
+            user.first_name = body.get('firstname', user.first_name)
+            user.last_name = body.get('lastname', user.last_name)
 
             # Update password if provided
             if 'password' in body:
@@ -188,11 +214,13 @@ def updateUser(request):
 
 @csrf_exempt
 @login_required
+@validateToken
 def deleteUser(request):
     try:
         if request.method == 'DELETE':
             user = request.user
             user.delete()
+
             return JsonResponse(
                 {
                     "status": "success",

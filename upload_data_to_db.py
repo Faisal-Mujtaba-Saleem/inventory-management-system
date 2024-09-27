@@ -4,13 +4,16 @@ import json
 import logging
 from django.utils.text import slugify
 
+
 # Set up Django environment
-os.environ.setdefault('DJANGO_SETTINGS_MODULE',
-                      'inventory_management_system.settings')
+os.environ.setdefault(
+    'DJANGO_SETTINGS_MODULE',
+    'inventory_management_system.settings'
+)
 django.setup()  # Initialize Django settings and application registry
 
 # Import the Item model from the inventory app
-from inventory.models import Item, Stock, Category
+from inventory.models import Item, Stock, Category, SubCategory
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -19,80 +22,53 @@ logger = logging.getLogger(__name__)
 
 # upload_data_to_db
 def upload_data_to_db(name, sku, description, price, qty_in_stock, category, sub_category):
-    # Generate a slug for item & stock
-    item_stock_slug = slugify(sku)
-
     # Check if category exists in the database
-    if not Category.objects.filter(name=category).exists():
-        # Create a new Category instance with the provided data if it doesn't exist
-        category = Category(name=category, slug=slugify(category))
-        category.save()  # Save the new category to the database
+    category = Category.objects.get_or_create(name=category)[0]
 
-    else:
-        # Get the existing Category instance
-        category = Category.objects.get(name=category)
+    # Check if sub_category exists in the database
+    sub_category = SubCategory.objects.get_or_create(
+        name=sub_category, category=category)[0]
+
+    item, is_item_created = Item.objects.get_or_create(
+        sku=sku,
+        defaults={
+            "name": name,
+            "sku": sku,
+            "price": price,
+            "description": description,
+            "category": category,
+            "sub_category": sub_category,
+        }
+    )
 
     # Check if item exists in the database
-    if Item.objects.filter(sku=sku).exists():
-        # Get the existing Item instance
-        item = Item.objects.get(sku=sku)
-
-        # Update the existing item with the provided data
+    if not is_item_created:
         item.name = name
         item.description = description
         item.sku = sku
-        item.slug = item_stock_slug
         item.price = price
         item.category = category
         item.sub_category = sub_category
+        item.save()  # Update the item in the database
 
-        item.save()  # Save the updated item to the database
+    # Get the existing Stock instance
+    stock, is_stock_created = Stock.objects.get_or_create(
+        item=item,
+        defaults={
+            "qty_in_stock": qty_in_stock
+        }
+    )
 
-        # Get the existing Stock instance
-        stock = Stock.objects.get(item=item)
-
-        # Update the existing stock with the provided data
-        stock.item = item
-        stock.name = item.name
-        stock.sku = item.sku
-        stock.slug = item_stock_slug
+    # Check if stock exists in the database
+    if not is_stock_created:
         stock.qty_in_stock = qty_in_stock
+        stock.save()  # Update the stock in the database
 
-        stock.save()  # Save the updated stock to the database
-
-        logger.info(
-            f'Item {item.name} of category {
-                category.name} updated successfully with stock of {stock.qty_in_stock}!'
-        )
-    else:
-        # Create a new Item instance with the provided data
-        item = Item(
-            name=name,
-            description=description,
-            sku=sku,
-            slug=item_stock_slug,
-            price=price,
-            category=category,
-            sub_category=sub_category,
-        )
-        item.save()  # Save the new item to the database
-
-        # Create a new Stock instance of the created item with the provided data
-        stock = Stock(
-            item=item,
-            name=item.name,
-            sku=item.sku,
-            slug=item_stock_slug,
-            qty_in_stock=qty_in_stock
-        )
-        stock.save()  # Save the new stock to the database
-
-        # Inform the user that the item was uploaded successfully with stock
-        logger.info(
-            f'Item {item.name} of category {
-                category.name
-            } uploaded successfully with stock of {stock.qty_in_stock}!'
-        )
+    logger.info(
+        f'Successfully uploaded item: {name} of category: {
+            category
+        } and sub_category: {sub_category} with quantity in stock: {qty_in_stock}'
+    )
 
 
 if __name__ == "__main__":

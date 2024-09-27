@@ -13,6 +13,7 @@ class Token(models.Model):
     )
     key = models.CharField(
         verbose_name="key",
+        unique=True,
         max_length=40
     )
     created_at = models.DateTimeField(
