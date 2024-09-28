@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from inventory.models import Item, Stock
+from inventory.myutils import poulateRelatedFields
 import json
 
 
@@ -19,9 +20,11 @@ def listStocks(request):
     """
     try:
         stock_queryset = Stock.objects.all()
+
         stocks_list = json.loads(
             serialize('json', stock_queryset)
         )
+        poulateRelatedFields(stocks_list, 'item', Item)
 
         return JsonResponse(
             {

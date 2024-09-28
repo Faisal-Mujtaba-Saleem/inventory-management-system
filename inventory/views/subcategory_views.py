@@ -1,7 +1,8 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
-from inventory.models import SubCategory
+from inventory.models import Category, SubCategory
+from inventory.myutils import poulateRelatedFields
 import json
 
 
@@ -20,9 +21,12 @@ def listSubCategories(request):
     """
     try:
         sub_categories_queryset = SubCategory.objects.all()
+
         sub_categories_list = json.loads(
             serialize('json', sub_categories_queryset)
         )
+        sub_categories_list = poulateRelatedFields(
+            sub_categories_list, 'category', Category)
 
         return JsonResponse(
             {

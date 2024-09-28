@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from inventory.models import Category
+from inventory.myutils import poulateRelatedFields
 import json
 
 
