@@ -61,15 +61,15 @@ urlpatterns = [
     ),
 
     path(
-        'items/min-qty/<int:min_qty>/',
-        view=search_filter_views.listItemsByMinQty,
-        name='list-items-by-min-quantity'  # List items by minimum quantity
+        'stocks/min-qty/<int:min_qty>/',
+        view=search_filter_views.listStocksByMinQty,
+        name='list-stocks-by-min-quantity'  # List stocks by minimum quantity
     ),
 
     path(
-        'items/max-qty/<int:max_qty>/',
-        view=search_filter_views.listItemsByMinQty,
-        name='list-items-by-max-quantity'  # List items by maximum quantity
+        'stocks/max-qty/<int:max_qty>/',
+        view=search_filter_views.listStocksByMaxQty,
+        name='list-stocks-by-max-quantity'  # List stocks by maximum quantity
     ),
 
     path(

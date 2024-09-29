@@ -112,7 +112,7 @@ def createItem(request):
             sub_category = SubCategory.objects.get_or_create(
                 name=sub_category,
                 category=category
-            )
+            )[0]
 
             item = Item.objects.create(
                 name=name,
@@ -123,7 +123,7 @@ def createItem(request):
                 sub_category=sub_category,
             )
 
-            stock = Stock.objects.create(
+            Stock.objects.create(
                 item=item, qty_in_stock=qty_in_stock
             )
 
@@ -170,6 +170,7 @@ def updateItem(request, item_slug):
             )
 
         item = Item.objects.get(slug=item_slug)
+
         data = json.loads(request.body)
 
         if isinstance(data, dict):
@@ -178,6 +179,8 @@ def updateItem(request, item_slug):
                     continue
                 else:
                     setattr(item, field, data[field])
+
+            item.save()
 
             item_updated = json.loads(
                 serialize('json', [item])

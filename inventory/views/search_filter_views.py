@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from inventory.models import Item, Category, SubCategory, Stock
+from inventory.myutils import poulateRelatedFields
 import json
 
 
@@ -25,11 +26,14 @@ def listItemsByCategory(request, category_slug):
     """
     try:
         category = Category.objects.get(slug=category_slug)
+
         category_related_items = json.loads(
             serialize(
                 'json', category.item_set.all()
             )
         )
+
+        poulateRelatedFields(category_related_items, 'category', Category)
 
         return JsonResponse(
             {
@@ -52,13 +56,13 @@ def listItemsByCategory(request, category_slug):
 
 
 @csrf_exempt
-def listItemsBySubCategory(request, subcategory_slug):
+def listItemsBySubCategory(request, sub_category_slug):
     """
     List all items filtered by sub-category.
 
     Args:
         request: The request object
-        subcategory_slug: The slug of the sub-category
+        sub_category_slug: The slug of the sub-category
 
     Returns:
         JsonResponse: The list of items filtered by sub-category
@@ -69,12 +73,15 @@ def listItemsBySubCategory(request, subcategory_slug):
     """
 
     try:
-        sub_category = SubCategory.objects.get(slug=subcategory_slug)
+        sub_category = SubCategory.objects.get(slug=sub_category_slug)
+
         sub_category_related_items = json.loads(
             serialize(
                 'json', sub_category.item_set.all()
             )
         )
+
+        poulateRelatedFields(sub_category_related_items, 'category', Category)
 
         return JsonResponse(
             {
@@ -86,7 +93,7 @@ def listItemsBySubCategory(request, subcategory_slug):
         )
 
     except SubCategory.DoesNotExist:
-        return JsonResponse({"error": f"SubCategory with slug {subcategory_slug} Doesn't Exists"}, status=404)
+        return JsonResponse({"error": f"SubCategory with slug {sub_category_slug} Doesn't Exists"}, status=404)
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
@@ -112,6 +119,8 @@ def listItemsByMinPrice(request, min_price):
         min_price_related_items = json.loads(
             serialize('json', min_price_related_items)
         )
+
+        poulateRelatedFields(min_price_related_items, 'category', Category)
 
         return JsonResponse(
             {
@@ -146,6 +155,8 @@ def listItemsByMaxPrice(request, max_price):
             serialize('json', max_price_related_items)
         )
 
+        poulateRelatedFields(max_price_related_items, 'category', Category)
+
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all items of max price {max_price}",
@@ -160,7 +171,7 @@ def listItemsByMaxPrice(request, max_price):
 
 
 @csrf_exempt
-def listItemsByMinQty(request, min_qty):
+def listStocksByMinQty(request, min_qty):
     """
     Retrieves a list of items from the inventory filtered by minimum quantity.
 
@@ -175,16 +186,18 @@ def listItemsByMinQty(request, min_qty):
     """
 
     try:
-        max_qty_related_items = Stock.objects.filter(qty_in_stock__gte=min_qty)
-        max_qty_related_items = json.loads(
-            serialize('json', max_qty_related_items)
+        min_qty_stocks = Stock.objects.filter(qty_in_stock__gte=min_qty)
+        min_qty_stocks = json.loads(
+            serialize('json', min_qty_stocks)
         )
+
+        poulateRelatedFields(min_qty_stocks, 'item', Item)
 
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all items of min quantity {min_qty}",
-                "items_count": len(max_qty_related_items),
-                "items": max_qty_related_items
+                "items_count": len(min_qty_stocks),
+                "items": min_qty_stocks
             },
             status=200
         )
@@ -194,7 +207,7 @@ def listItemsByMinQty(request, min_qty):
 
 
 @csrf_exempt
-def listItemsByMaxQty(request, max_qty):
+def listStocksByMaxQty(request, max_qty):
     """
     Retrieves a list of items from the inventory filtered by quantity range.
 
@@ -208,16 +221,18 @@ def listItemsByMaxQty(request, max_qty):
         Exception: If there is an error with the database query
     """
     try:
-        max_qty_related_items = Stock.objects.filter(qty_in_stock__lte=max_qty)
-        max_qty_related_items = json.loads(
-            serialize('json', max_qty_related_items)
+        max_qty_stocks = Stock.objects.filter(qty_in_stock__lte=max_qty)
+        max_qty_stocks = json.loads(
+            serialize('json', max_qty_stocks)
         )
+
+        poulateRelatedFields(max_qty_stocks, 'item', Item)
 
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all items of max quantity {max_qty}",
-                "items_count": len(max_qty_related_items),
-                "items": max_qty_related_items
+                "items_count": len(max_qty_stocks),
+                "items": max_qty_stocks
             },
             status=200
         )
@@ -231,13 +246,15 @@ def listItemsFromMinToMaxPrice(request, min_price, max_price):
         items_from_min_to_max_price = Item.objects.filter(
             price__gte=min_price,
             price__lte=max_price
-        ).order_by('price')  # Order filtered items by price in assending order
+        ).order_by('price')  # Order filtered items by price
 
         items_from_min_to_max_price = json.loads(
             serialize(
                 'json', items_from_min_to_max_price
             )
         )
+
+        poulateRelatedFields(items_from_min_to_max_price, 'category', Category)
 
         return JsonResponse(
             {
@@ -256,7 +273,6 @@ def listItemsFromMaxToMinPrice(request, max_price, min_price):
         items_from_max_to_min_price = Item.objects.filter(
             price__lte=max_price,
             price__gte=min_price
-            # Order filtered items by price in descending order
         ).order_by('-price')
 
         items_from_max_to_min_price = json.loads(
@@ -264,6 +280,8 @@ def listItemsFromMaxToMinPrice(request, max_price, min_price):
                 'json', items_from_max_to_min_price
             )
         )
+
+        poulateRelatedFields(items_from_max_to_min_price, 'category', Category)
 
         return JsonResponse(
             {
@@ -289,6 +307,8 @@ def listStocksFromMaxToMinQty(request, max_qty, min_qty):
                 'json', stocks_from_min_to_max_qty
             )
         )
+
+        poulateRelatedFields(stocks_from_min_to_max_qty, 'item', Item)
 
         return JsonResponse(
             {
@@ -319,6 +339,8 @@ def listStocksFromMinToMaxQty(request, min_qty, max_qty):
                 'json', stocks_from_min_to_max_qty
             )
         )
+
+        poulateRelatedFields(stocks_from_min_to_max_qty, 'item', Item)
 
         return JsonResponse(
             {
@@ -370,16 +392,14 @@ def searchItems(request):
             'sub_category': sub_category,
             'price': request.GET.get('price', ''),
         }
-
-        queries = {
-            key: value for key, value in queries.items() if value != ''
-        }
+        queries = {key: value for key, value in queries.items() if value != ''}
 
         items = Item.objects.filter(**queries)
+        items = json.loads(serialize('json', items))
 
-        serialize_items = json.loads(serialize('json', items))
+        poulateRelatedFields(items, 'category', Category)
 
-        return JsonResponse({"name": serialize_items})
+        return JsonResponse({"name": items})
 
     except Category.DoesNotExist:
         return JsonResponse({"error": "Category does not exist"}, status=404)

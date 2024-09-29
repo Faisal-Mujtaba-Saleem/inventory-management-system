@@ -120,15 +120,15 @@ class Stock(models.Model):
         return f"{self.item.name} - {self.qty_in_stock} in stock"
 
 
-class Supply(models.Model):
-    id = models.AutoField(verbose_name="ID", primary_key=True)
-    item = models.OneToOneField(
-        to='Item',
-        on_delete=models.CASCADE,
-        verbose_name='Item'
-    )
-    qty_supplied = models.PositiveIntegerField(default=0)
-    last_updated = models.DateTimeField(auto_now=True)
+# class Supply(models.Model):
+#     id = models.AutoField(verbose_name="ID", primary_key=True)
+#     item = models.OneToOneField(
+#         to='Item',
+#         on_delete=models.CASCADE,
+#         verbose_name='Item'
+#     )
+#     qty_supplied = models.PositiveIntegerField(default=0)
+#     last_updated = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"{self.item.name} - {self.qty_in_stock} in stock"
+#     def __str__(self):
+#         return f"{self.item.name} - {self.qty_in_stock} in stock"
