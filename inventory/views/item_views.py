@@ -1,8 +1,9 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
+from django.core.paginator import Paginator
 from inventory.models import Item, Category, SubCategory, Stock
-from inventory.myutils import poulateRelatedFields
+from inventory.myutils import populateRelationalFields
 import json
 
 
@@ -18,16 +19,36 @@ def listItems(request):
     try:
         items_queryset = Item.objects.all()
 
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
+            )
+
+        paginator = Paginator(items_queryset, pagesize)
+        page_object = paginator.get_page(page)
+
         items_list = json.loads(
-            serialize('json', items_queryset)
+            serialize('json', page_object.object_list)
         )
 
-        poulateRelatedFields(items_list, 'category', Category)
+        populateRelationalFields(
+            items_list, ['category', 'sub_category'],
+            [Category, SubCategory]
+        )
 
         return JsonResponse(
             {
                 "message": "Successfully retrieved all items",
-                "items_count": len(items_list),
+                "page": page,
+                "pagesize": pagesize,
+                'total_pages': paginator.num_pages,
+                "total_results": paginator.count,
                 "items": items_list
             },
             status=200
@@ -59,6 +80,11 @@ def retrieveItem(request, item_slug):
         item_retrieved = json.loads(
             serialize('json', [item_retrieved])
         )[0]
+
+        populateRelationalFields(
+            item_retrieved, ['category', 'sub_category'],
+            [Category, SubCategory]
+        )
 
         return JsonResponse(
             {
@@ -127,12 +153,19 @@ def createItem(request):
                 item=item, qty_in_stock=qty_in_stock
             )
 
+            item_created = json.loads(
+                serialize('json', [item])
+            )[0]
+
+            populateRelationalFields(
+                item_created, ['category', 'sub_category'],
+                [Category, SubCategory]
+            )
+
             return JsonResponse(
                 {
                     "message": "Successfully added the item",
-                    "item": json.loads(
-                        serialize('json', [item])
-                    )[0]
+                    "item": item_created
                 },
                 status=201
             )
@@ -185,6 +218,11 @@ def updateItem(request, item_slug):
             item_updated = json.loads(
                 serialize('json', [item])
             )[0]
+
+            populateRelationalFields(
+                item_updated, ['category', 'sub_category'],
+                [Category, SubCategory]
+            )
 
             return JsonResponse(
                 {
