@@ -1,7 +1,9 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
+from django.core.paginator import Paginator
 from inventory.models import Item, Category, SubCategory, Stock
+from inventory.myutils import populateRelationalFields
 import json
 
 
@@ -25,16 +27,38 @@ def listItemsByCategory(request, category_slug):
     """
     try:
         category = Category.objects.get(slug=category_slug)
+
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
+            )
+
+        paginator = Paginator(category.item_set.all(), pagesize)
+        page_object = paginator.get_page(page)
+
         category_related_items = json.loads(
             serialize(
-                'json', category.item_set.all()
+                'json', page_object.object_list
             )
+        )
+
+        populateRelationalFields(category_related_items, [
+            'category', 'sub_category'], [Category, SubCategory]
         )
 
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all items of category {category}",
-                "items_count": len(category_related_items),
+                "page": page,
+                "pagesize": pagesize,
+                'total_pages': paginator.num_pages,
+                "total_results": paginator.count,
                 "items": category_related_items
             },
             status=200
@@ -52,13 +76,13 @@ def listItemsByCategory(request, category_slug):
 
 
 @csrf_exempt
-def listItemsBySubCategory(request, subcategory_slug):
+def listItemsBySubCategory(request, sub_category_slug):
     """
     List all items filtered by sub-category.
 
     Args:
         request: The request object
-        subcategory_slug: The slug of the sub-category
+        sub_category_slug: The slug of the sub-category
 
     Returns:
         JsonResponse: The list of items filtered by sub-category
@@ -67,26 +91,47 @@ def listItemsBySubCategory(request, subcategory_slug):
         SubCategory.DoesNotExist: If sub-category with slug doesn't exist
         Exception: If any exception occurs
     """
-
     try:
-        sub_category = SubCategory.objects.get(slug=subcategory_slug)
+        sub_category = SubCategory.objects.get(slug=sub_category_slug)
+
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
+            )
+
+        paginator = Paginator(sub_category.item_set.all(), pagesize)
+        page_object = paginator.get_page(page)
+
         sub_category_related_items = json.loads(
             serialize(
-                'json', sub_category.item_set.all()
+                'json', page_object.object_list
             )
+        )
+
+        populateRelationalFields(sub_category_related_items, [
+            'category', 'sub_category'], [Category, SubCategory]
         )
 
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all items of sub-category {sub_category}",
-                "items_count": len(sub_category_related_items),
+                "page": page,
+                "pagesize": pagesize,
+                'total_pages': paginator.num_pages,
+                "total_results": paginator.count,
                 "items": sub_category_related_items
             },
             status=200
         )
 
     except SubCategory.DoesNotExist:
-        return JsonResponse({"error": f"SubCategory with slug {subcategory_slug} Doesn't Exists"}, status=404)
+        return JsonResponse({"error": f"SubCategory with slug {sub_category_slug} Doesn't Exists"}, status=404)
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
@@ -106,17 +151,38 @@ def listItemsByMinPrice(request, min_price):
     Raises:
         Exception: If there is an error with the database query
     """
-
     try:
         min_price_related_items = Item.objects.filter(price__gte=min_price)
+
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
+            )
+
+        paginator = Paginator(min_price_related_items)
+        page_object = paginator.get_page(page)
+
         min_price_related_items = json.loads(
-            serialize('json', min_price_related_items)
+            serialize('json', page_object.object_list)
+        )
+
+        populateRelationalFields(min_price_related_items, [
+            'category', 'sub_category'], [Category, SubCategory]
         )
 
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all items of max price {min_price}",
-                "items_count": len(min_price_related_items),
+                "page": page,
+                "pagesize": pagesize,
+                'total_pages': paginator.num_pages,
+                "total_results": paginator.count,
                 "items": min_price_related_items
             },
             status=200
@@ -139,17 +205,38 @@ def listItemsByMaxPrice(request, max_price):
     Raises:
         Exception: If there is an error with the database query
     """
-
     try:
         max_price_related_items = Item.objects.filter(price__lte=max_price)
+
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
+            )
+
+        paginator = Paginator(max_price_related_items)
+        page_object = paginator.get_page(page)
+
         max_price_related_items = json.loads(
-            serialize('json', max_price_related_items)
+            serialize('json', page_object.object_list)
+        )
+
+        populateRelationalFields(max_price_related_items, [
+            'category', 'sub_category'], [Category, SubCategory]
         )
 
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all items of max price {max_price}",
-                "items_count": len(max_price_related_items),
+                "page": page,
+                "pagesize": pagesize,
+                'total_pages': paginator.num_pages,
+                "total_results": paginator.count,
                 "items": max_price_related_items
             },
             status=200
@@ -160,7 +247,7 @@ def listItemsByMaxPrice(request, max_price):
 
 
 @csrf_exempt
-def listItemsByMinQty(request, min_qty):
+def listStocksByMinQty(request, min_qty):
     """
     Retrieves a list of items from the inventory filtered by minimum quantity.
 
@@ -173,18 +260,37 @@ def listItemsByMinQty(request, min_qty):
     Raises:
         Exception: If there is an error with the database query
     """
-
     try:
-        max_qty_related_items = Stock.objects.filter(qty_in_stock__gte=min_qty)
-        max_qty_related_items = json.loads(
-            serialize('json', max_qty_related_items)
+        min_qty_stocks = Stock.objects.filter(qty_in_stock__gte=min_qty)
+
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
+            )
+
+        paginator = Paginator(min_qty_stocks)
+        page_object = paginator.get_page(page)
+
+        min_qty_stocks = json.loads(
+            serialize('json', page_object.object_list)
         )
+
+        populateRelationalFields(min_qty_stocks, ['item'], [Item])
 
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all items of min quantity {min_qty}",
-                "items_count": len(max_qty_related_items),
-                "items": max_qty_related_items
+                "page": page,
+                "pagesize": pagesize,
+                'total_pages': paginator.num_pages,
+                "total_results": paginator.count,
+                "items": min_qty_stocks
             },
             status=200
         )
@@ -194,7 +300,7 @@ def listItemsByMinQty(request, min_qty):
 
 
 @csrf_exempt
-def listItemsByMaxQty(request, max_qty):
+def listStocksByMaxQty(request, max_qty):
     """
     Retrieves a list of items from the inventory filtered by quantity range.
 
@@ -208,16 +314,36 @@ def listItemsByMaxQty(request, max_qty):
         Exception: If there is an error with the database query
     """
     try:
-        max_qty_related_items = Stock.objects.filter(qty_in_stock__lte=max_qty)
-        max_qty_related_items = json.loads(
-            serialize('json', max_qty_related_items)
+        max_qty_stocks = Stock.objects.filter(qty_in_stock__lte=max_qty)
+
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
+            )
+
+        paginator = Paginator(max_qty_stocks)
+        page_object = paginator.get_page(page)
+
+        max_qty_stocks = json.loads(
+            serialize('json', page_object.object_list)
         )
+
+        populateRelationalFields(max_qty_stocks, ['item'], [Item])
 
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all items of max quantity {max_qty}",
-                "items_count": len(max_qty_related_items),
-                "items": max_qty_related_items
+                "page": page,
+                "pagesize": pagesize,
+                'total_pages': paginator.num_pages,
+                "total_results": paginator.count,
+                "items": max_qty_stocks
             },
             status=200
         )
@@ -231,18 +357,37 @@ def listItemsFromMinToMaxPrice(request, min_price, max_price):
         items_from_min_to_max_price = Item.objects.filter(
             price__gte=min_price,
             price__lte=max_price
-        ).order_by('price')  # Order filtered items by price in assending order
+        ).order_by('price')  # Order filtered items by price
+
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
+            )
+
+        paginator = Paginator(items_from_min_to_max_price)
+        page_object = paginator.get_page(page)
 
         items_from_min_to_max_price = json.loads(
-            serialize(
-                'json', items_from_min_to_max_price
-            )
+            serialize('json', page_object.object_list)
+        )
+
+        populateRelationalFields(items_from_min_to_max_price, [
+            'category', 'sub_category'], [Category, SubCategory]
         )
 
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all items between price {min_price} and {max_price}",
-                "items_count": len(items_from_min_to_max_price),
+                "page": page,
+                "pagesize": pagesize,
+                'total_pages': paginator.num_pages,
+                "total_results": paginator.count,
                 "Items": items_from_min_to_max_price
             }
         )
@@ -256,19 +401,37 @@ def listItemsFromMaxToMinPrice(request, max_price, min_price):
         items_from_max_to_min_price = Item.objects.filter(
             price__lte=max_price,
             price__gte=min_price
-            # Order filtered items by price in descending order
         ).order_by('-price')
 
-        items_from_max_to_min_price = json.loads(
-            serialize(
-                'json', items_from_max_to_min_price
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
             )
+
+        paginator = Paginator(items_from_max_to_min_price)
+        page_object = paginator.get_page(page)
+
+        items_from_max_to_min_price = json.loads(
+            serialize('json', page_object.object_list)
+        )
+
+        populateRelationalFields(items_from_max_to_min_price, [
+            'category', 'sub_category'], [Category, SubCategory]
         )
 
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all items between price {max_price} and {min_price}",
-                "items_count": len(items_from_max_to_min_price),
+                "page": page,
+                "pagesize": pagesize,
+                'total_pages': paginator.num_pages,
+                "total_results": paginator.count,
                 "Items": items_from_max_to_min_price
             }
         )
@@ -284,17 +447,34 @@ def listStocksFromMaxToMinQty(request, max_qty, min_qty):
             qty_in_stock__gte=min_qty,
         ).order_by('-qty_in_stock')
 
-        stocks_from_min_to_max_qty = json.loads(
-            serialize(
-                'json', stocks_from_min_to_max_qty
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
             )
+
+        paginator = Paginator(stocks_from_min_to_max_qty)
+        page_object = paginator.get_page(page)
+
+        stocks_from_min_to_max_qty = json.loads(
+            serialize('json', page_object.object_list)
         )
+
+        populateRelationalFields(stocks_from_min_to_max_qty, ['item'], [Item])
 
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all stocks between quantity {min_qty} and {max_qty}",
-                "stocks": len(stocks_from_min_to_max_qty),
-                "Items": stocks_from_min_to_max_qty
+                "page": page,
+                "pagesize": pagesize,
+                'total_pages': paginator.num_pages,
+                "total_results": paginator.count,
+                "stocks": stocks_from_min_to_max_qty
             }
         )
 
@@ -314,17 +494,34 @@ def listStocksFromMinToMaxQty(request, min_qty, max_qty):
             qty_in_stock__lte=max_qty
         ).order_by('qty_in_stock')
 
-        stocks_from_min_to_max_qty = json.loads(
-            serialize(
-                'json', stocks_from_min_to_max_qty
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
             )
+
+        paginator = Paginator(stocks_from_min_to_max_qty)
+        page_object = paginator.get_page(page)
+
+        stocks_from_min_to_max_qty = json.loads(
+            serialize('json', page_object.object_list)
         )
+
+        populateRelationalFields(stocks_from_min_to_max_qty, ['item'], [Item])
 
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all stocks between quantity {min_qty} and {max_qty}",
-                "stocks_count": len(stocks_from_min_to_max_qty),
-                "Items": stocks_from_min_to_max_qty
+                "page": page,
+                "pagesize": pagesize,
+                'total_pages': paginator.num_pages,
+                "total_results": paginator.count,
+                "stocks": stocks_from_min_to_max_qty
             }
         )
 
@@ -370,16 +567,16 @@ def searchItems(request):
             'sub_category': sub_category,
             'price': request.GET.get('price', ''),
         }
-
-        queries = {
-            key: value for key, value in queries.items() if value != ''
-        }
+        queries = {key: value for key, value in queries.items() if value != ''}
 
         items = Item.objects.filter(**queries)
+        items = json.loads(serialize('json', items))
 
-        serialize_items = json.loads(serialize('json', items))
+        populateRelationalFields(items, ['category', 'sub_category'], [
+            Category, SubCategory]
+        )
 
-        return JsonResponse({"name": serialize_items})
+        return JsonResponse({"name": items})
 
     except Category.DoesNotExist:
         return JsonResponse({"error": "Category does not exist"}, status=404)

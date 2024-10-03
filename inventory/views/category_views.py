@@ -1,8 +1,8 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
+from django.core.paginator import Paginator
 from inventory.models import Category
-from inventory.myutils import poulateRelatedFields
 import json
 
 
@@ -22,13 +22,32 @@ def listCategories(request):
     try:
         categories_queryset = Category.objects.all()
 
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."},
+                status=400
+            )
+
+        paginator = Paginator(categories_queryset, pagesize)
+        page_object = paginator.get_page(page)
+
         categories_list = json.loads(
-            serialize('json', categories_queryset)
+            serialize('json', page_object.object_list)
         )
 
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all categories",
+                "page": page,
+                "pagesize": pagesize,
+                "total_pages": paginator.num_pages,
+                "total_results": paginator.count,
                 "categories": categories_list
             },
             status=200

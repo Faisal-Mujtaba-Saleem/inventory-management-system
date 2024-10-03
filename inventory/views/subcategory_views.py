@@ -1,8 +1,9 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
+from django.core.paginator import Paginator
 from inventory.models import Category, SubCategory
-from inventory.myutils import poulateRelatedFields
+from inventory.myutils import populateRelationalFields
 import json
 
 
@@ -22,15 +23,34 @@ def listSubCategories(request):
     try:
         sub_categories_queryset = SubCategory.objects.all()
 
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
+            )
+
+        paginator = Paginator(sub_categories_queryset, pagesize)
+        page_object = paginator.get_page(page)
+
         sub_categories_list = json.loads(
-            serialize('json', sub_categories_queryset)
+            serialize('json', page_object.object_list)
         )
-        sub_categories_list = poulateRelatedFields(
-            sub_categories_list, 'category', Category)
+
+        populateRelationalFields(
+            sub_categories_list, ['category'], [Category])
 
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all sub-categories",
+                "page": page,
+                "pagesize": pagesize,
+                "total_pages": paginator.num_pages,
+                "total_results": paginator.count,
                 "sub-categories": sub_categories_list
             },
             status=200
@@ -59,10 +79,13 @@ def retrieveSubCategory(request, sub_category_slug):
         sub_category_retrieved = SubCategory.objects.get(
             slug=sub_category_slug
         )
-
         sub_category_retrieved = json.loads(
             serialize('json', [sub_category_retrieved])
         )[0]
+
+        populateRelationalFields(
+            sub_category_retrieved, ['category'], [Category]
+        )
 
         return JsonResponse(
             {
@@ -107,7 +130,6 @@ def updateSubCategory(request, sub_category_slug):
         sub_category = SubCategory.objects.get(slug=sub_category_slug)
 
         data = json.loads(request.body)
-
         category_name = data.get('name', sub_category.name)
 
         sub_category.name = category_name
@@ -116,6 +138,10 @@ def updateSubCategory(request, sub_category_slug):
         sub_category_updated = json.loads(
             serialize('json', [sub_category])
         )[0]
+
+        populateRelationalFields(
+            sub_category_updated, ['category'], [Category]
+        )
 
         return JsonResponse(
             {

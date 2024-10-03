@@ -1,15 +1,14 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
-from django.core.paginator import Paginator
-from inventory.models import Item, Stock
+from inventory.models import Item, Supply
 from inventory.myutils import populateRelationalFields
 import json
 
 
 # Stock views
 
-def listStocks(request):
+def listSupply(request):
     """
     Retrieves a list of all stocks in the inventory.
 
@@ -20,36 +19,17 @@ def listStocks(request):
         Exception: If there is an error with the database query
     """
     try:
-        stock_queryset = Stock.objects.all()
+        supply_queryset = Supply.objects.all()
 
-        page = request.GET.get('page', 0)
-        pagesize = request.GET.get('pagesize', 0)
-
-        page = int(page)
-        pagesize = int(pagesize)
-
-        if page <= 0 or pagesize <= 0:
-            return JsonResponse(
-                {"error": "Invalid page or pagesize."}, status=400
-            )
-
-        paginator = Paginator(stock_queryset, pagesize)
-        page_object = paginator.get_page(page)
-
-        stocks_list = json.loads(
-            serialize('json', page_object.object_list)
+        supply_list = json.loads(
+            serialize('json', supply_queryset)
         )
-
-        populateRelationalFields(stocks_list, ['item'], [Item])
+        # populateRelationalFields(supply_list, 'item', Item)
 
         return JsonResponse(
             {
-                "message": f"Successfully retrieved all stocks",
-                "page": page,
-                "pagesize": pagesize,
-                "total_pages": paginator.num_pages,
-                "total_results": paginator.count,
-                "stocks": stocks_list
+                "message": f"Successfully retrieved all supplies",
+                "supplies": supply_list
             },
             status=200
         )
@@ -57,7 +37,7 @@ def listStocks(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-def retrieveStock(request, item_slug):
+def retrieveSupply(request, item_slug):
     """
     Retrieves a stock from the inventory by item-slug.
 
@@ -72,19 +52,17 @@ def retrieveStock(request, item_slug):
         Exception: If any exception occurs
     """
     try:
-        item = Item.objects.get(slug=item_slug)
-        item_stock = item.stock
+        item = Supply.objects.get(slug=item_slug)
+        item_supply = item.supply
 
-        stock_retrieved = json.loads(
-            serialize('json', [item_stock])
+        supply_retrieved = json.loads(
+            serialize('json', [item_supply])
         )[0]
-
-        populateRelationalFields(stock_retrieved, ['item'], [Item])
 
         return JsonResponse(
             {
-                "message": f"Successfully retrieved the stock of the item with slug {item_slug}",
-                "item_stock": stock_retrieved
+                "message": f"Successfully retrieved the supplies of the item with slug {item_slug}",
+                "item_supply": supply_retrieved
             },
             status=200
         )
@@ -97,7 +75,7 @@ def retrieveStock(request, item_slug):
 
 
 @csrf_exempt
-def updateStock(request, item_slug):
+def updateSupply(request, item_slug):
     """
     Updates a stock from the inventory by item-slug.
 
@@ -116,25 +94,26 @@ def updateStock(request, item_slug):
                 {"error": f"Request method {request.method} not allowed, use PUT or PATCH"}, status=405
             )
 
-        item = Item.objects.get(slug=item_slug)
-        item_stock = item.stock
+        item = Supply.objects.get(slug=item_slug)
+        item_stock = item.supply
 
         data = json.loads(request.body)
-        qty_in_stock = data.get('qty_in_stock', item_stock.qty_in_stock)
 
-        item_stock.qty_in_stock = qty_in_stock
+        qty_supplied = data.get('qty_supplied', item_stock.qty_supplied)
+        item_stock.qty_isupplied = qty_supplied
+
         item_stock.save()
 
-        stock_updated = json.loads(
-            serialize('json', [item_stock])
-        )[0]
+        supply_updated = json.loads(
 
-        populateRelationalFields(stock_updated, ['item'], [Item])
+            serialize('json', [item_stock])
+
+        )[0]
 
         return JsonResponse(
             {
-                "message": f"Successfully updated the stock of the item with slug {item_slug}",
-                "item_stock": stock_updated
+                "message": f"Successfully updated the supply of the item with slug {item_slug}",
+                "item_supply": supply_updated
             },
             status=200
         )

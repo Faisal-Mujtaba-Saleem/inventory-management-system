@@ -1,16 +1,46 @@
+from typing import Union
 from inventory.models import Category, SubCategory
 
 
-def poulateRelatedFields(querylist=None, related_field=None, related_model=None):
-    for query_dict in querylist:
-        related_field_id = query_dict['fields'].get(related_field)
-        related_field_obj = related_model.objects.get(pk=related_field_id)
+def populateRelationalFields(query_data: Union[list[dict], dict], relational_fields: list, relational_models: list):
+    if len(relational_fields) == len(relational_models):
 
-        query_dict['fields'][related_field] = {
-            'id': related_field_obj.id,
-            'name': related_field_obj.name,
-            'slug': related_field_obj.slug
-        }
+        if isinstance(query_data, list):
 
-    if querylist is not None and querylist[0]['model'] == 'inventory.item' and related_field == 'category':
-        poulateRelatedFields(querylist, 'sub_category', SubCategory)
+            for query_dict in query_data:
+                for i, relational_field in enumerate(relational_fields):
+                    relational_model = relational_models[i]
+
+                    relational_field_id = query_dict['fields'].get(
+                        relational_field)
+                    relational_field_obj = relational_model.objects.get(
+                        pk=relational_field_id)
+
+                    query_dict['fields'][relational_field] = {
+                        'id': relational_field_obj.id,
+                        'name': relational_field_obj.name,
+                        'slug': relational_field_obj.slug
+                    }
+
+        elif isinstance(query_data, dict):
+            query_dict = query_data
+
+            for i, relational_field in enumerate(relational_fields):
+                relational_model = relational_models[i]
+
+                relational_field_id = query_dict['fields'].get(
+                    relational_field
+                )
+                relational_field_obj = relational_model.objects.get(
+                    pk=relational_field_id
+                )
+
+                query_dict['fields'][relational_field] = {
+                    'id': relational_field_obj.id,
+                    'name': relational_field_obj.name,
+                    'slug': relational_field_obj.slug
+                }
+
+    else:
+        raise Exception(
+            'Number of relational fields does not match number of relational models')
