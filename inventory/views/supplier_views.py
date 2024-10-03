@@ -25,22 +25,25 @@ def listSupplier(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-def retrieveSupplier(request, per_name, item_name_slug):
+def retrieveSupplier(request, pk):
     try:
-        supplier = Supplier.objects.filter(
-            name_of_person=per_name, slug=item_name_slug)
-        supplier_data = json.loads(serialize('json', supplier))
+        supplier = Supplier.objects.get(pk=pk)
+        supplier = json.loads(
+            serialize(
+                'json', supplier
+            )
+        )[0]
 
         return JsonResponse(
             {
-                "message": f"Successfully retrieved the supplier with slug {item_name_slug}",
-                "supplier": supplier_data
+                "message": f"Successfully retrieved the supplier of pk {pk}",
+                "supplier": supplier
             },
             status=200
         )
 
     except Supplier.DoesNotExist:
-        return JsonResponse({"error": f"Supplier with slug {item_name_slug} doesn't exist"}, status=404)
+        return JsonResponse({"error": f"Supplier with id {pk} doesn't exist"}, status=404)
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
@@ -110,33 +113,47 @@ def createSupplier(request, item_slug):
 
 
 @csrf_exempt
-# def updateSupplier(request, per_name, item_name_slug):
-#     try:
-#         if request.method not in ['PUT', 'PATCH']:
-#             return JsonResponse({"error": f"Request method {request.method} not allowed, use PUT or PATCH"}, status=405)
-#         supplier = Supplier.objects.get(
-#             name_of_person=supplier_name, slug=item_name_slug)
-#         data = json.loads(request.body)
-#         if isinstance(data, dict):
-#             for field, value in data.items():
-#                 if field != 'slug':
-#                     setattr(supplier, field, value)
-#             supplier.save()
-#             updated_supplier = json.loads(serialize('json', [supplier]))[0]
-#             return JsonResponse(
-#                 {
-#                     "message": f"Successfully updated the supplier with slug {item_name_slug}",
-#                     "supplier": updated_supplier
-#                 },
-#                 status=200
-#             )
-#         return JsonResponse({"error": "Invalid data format. Please provide a dictionary"}, status=400)
-#     except Supplier.DoesNotExist:
-#         return JsonResponse({"error": f"Supplier with slug {item_name_slug} doesn't exist"}, status=404)
-#     except Exception as e:
-#         return JsonResponse({"error": str(e)}, status=500)
+def updateSupplier(request, pk):
+    try:
+        if request.method not in ['PUT', 'PATCH']:
+            return JsonResponse({"error": f"Request method {request.method} not allowed, use PUT or PATCH"}, status=405)
+
+        supplier = Supplier.objects.get(pk=pk)
+
+        data = json.loads(request.body)
+
+        print(supplier.__dict__)
+
+        if isinstance(data, dict):
+            for field, value in data.items():
+                if field in supplier.__dict__.keys():
+                    setattr(supplier, field, value)
+
+            supplier.save()
+
+            updated_supplier = json.loads(
+                serialize('json', [supplier])
+            )[0]
+
+            return JsonResponse(
+                {
+                    "message": f"Successfully updated the supplier of pk {pk}",
+                    "supplier": updated_supplier
+                },
+                status=200
+            )
+
+        return JsonResponse({"error": "Invalid data format. Please provide a dictionary"}, status=400)
+
+    except Supplier.DoesNotExist:
+        return JsonResponse({"error": f"Supplier of pk {pk} doesn't exist"}, status=404)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
 @csrf_exempt
-def deleteSupplier(request, item_slug):
+def deleteSupplier(request, pk):
     """
     Delete a supplier by slug.
 
@@ -149,15 +166,16 @@ def deleteSupplier(request, item_slug):
     """
     try:
         if request.method != 'DELETE':
-            return JsonResponse({"error": f"Request method {request.method} not allowed, use DELETE"}, status=405)
+            return JsonResponse(
+                {"error": f"Request method {request.method} not allowed, use DELETE"}, status=405
+            )
 
-        supplier = Supplier.objects.get(slug=item_slug)
-        supplier.delete()
+        Supplier.objects.get(pk=pk).delete()
 
-        return JsonResponse({"message": f"Supplier with slug {item_slug} has been deleted successfully"}, status=204)
+        return JsonResponse({"message": f"Supplier of pk {pk} has been deleted successfully"}, status=204)
 
     except Supplier.DoesNotExist:
-        return JsonResponse({"error": f"Supplier with slug {item_slug} doesn't exist"}, status=404)
+        return JsonResponse({"error": f"Supplier of pk {pk} doesn't exist"}, status=404)
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)

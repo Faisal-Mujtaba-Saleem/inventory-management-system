@@ -170,19 +170,19 @@ urlpatterns = [
     ),
 
     path(
-        'supplier/retrieve/<str:per_name>/<str:item_name_slug>/',
+        'supplier/retrieve/<int:pk>/',
         view=supplier_views.retrieveSupplier,
         name='retrieve-item'  # Retrieve an item by slug
     ),
 
-    # path(
-    #     'supplier/update/<str:per_name>/<str:item_name_slug>/',
-    #     view=supplier_views.updateSupplier,
-    #     name='update-item'  # Update an item by slug
-    # ),
+    path(
+        'supplier/update/<int:pk>/',
+        view=supplier_views.updateSupplier,
+        name='update-item'  # Update an item by slug
+    ),
 
     path(
-        'supplier/delete/<str:item_slug>/',
+        'supplier/delete/<int:pk>/',
         view=supplier_views.deleteSupplier,
         name='delete-item'  # Delete an item by slug
     ),
@@ -192,16 +192,21 @@ urlpatterns = [
     path(
         'supply/',
         view=supply_views.listSupply,
-        name='list-stocks'  # List all stocks
+        name='list-supplies'  # List all supplies
     ),
     path(
-        'supply/retrieve/<str:item_slug>/',
+        'supply/retrieve/<int:pk>/',
         view=supply_views.retrieveSupply,
-        name='retrieve-stock'  # Retrieve stock by item slug
+        name='retrieve-supply'  # Retrieve supply
     ),
     path(
-        'supply/update/<str:item_slug>/',
+        'supply/update/<int:pk>/',
         view=supply_views.updateSupply,
-        name='update-stock'  # Update stock by item slug
+        name='update-supply'  # Update supply
     ),
+    path(
+        'supply/delete/<int:pk>/',
+        view=supply_views.deleteSupply,
+        name='delete-supply'  # Delete supply
+    )
 ]

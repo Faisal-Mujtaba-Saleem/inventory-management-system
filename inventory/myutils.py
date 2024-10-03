@@ -1,8 +1,14 @@
-from typing import Union
+from typing import Union, TypeAlias
 from inventory.models import Category, SubCategory
 
+QueryData: TypeAlias = Union[
+    list[dict],
+    dict
+]
 
-def populateRelationalFields(query_data: Union[list[dict], dict], relational_fields: list, relational_models: list):
+
+def populateRelationalFields(query_data: QueryData, relational_fields: list, relational_models: list):
+
     if len(relational_fields) == len(relational_models):
 
         if isinstance(query_data, list):
@@ -16,11 +22,19 @@ def populateRelationalFields(query_data: Union[list[dict], dict], relational_fie
                     relational_field_obj = relational_model.objects.get(
                         pk=relational_field_id)
 
-                    query_dict['fields'][relational_field] = {
-                        'id': relational_field_obj.id,
-                        'name': relational_field_obj.name,
-                        'slug': relational_field_obj.slug
-                    }
+                    if relational_field == 'supplier':
+                        query_dict['fields'][relational_field] = {
+                            'id': relational_field_obj.id,
+                            'name': relational_field_obj.name,
+                            'email': relational_field_obj.email,
+                            'phone': relational_field_obj.phone
+                        }
+                    else:
+                        query_dict['fields'][relational_field] = {
+                            'id': relational_field_obj.id,
+                            'name': relational_field_obj.name,
+                            'slug': relational_field_obj.slug
+                        }
 
         elif isinstance(query_data, dict):
             query_dict = query_data
@@ -35,11 +49,19 @@ def populateRelationalFields(query_data: Union[list[dict], dict], relational_fie
                     pk=relational_field_id
                 )
 
-                query_dict['fields'][relational_field] = {
-                    'id': relational_field_obj.id,
-                    'name': relational_field_obj.name,
-                    'slug': relational_field_obj.slug
-                }
+                if relational_field == 'supplier':
+                    query_dict['fields'][relational_field] = {
+                        'id': relational_field_obj.id,
+                        'name': relational_field_obj.name,
+                        'email': relational_field_obj.email,
+                        'phone': relational_field_obj.phone
+                    }
+                else:
+                    query_dict['fields'][relational_field] = {
+                        'id': relational_field_obj.id,
+                        'name': relational_field_obj.name,
+                        'slug': relational_field_obj.slug
+                    }
 
     else:
         raise Exception(

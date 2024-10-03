@@ -191,8 +191,7 @@ def deleteSubCategory(request, sub_category_slug):
                 status=405
             )
 
-        sub_category = SubCategory.objects.get(slug=sub_category_slug)
-        sub_category.delete()
+        SubCategory.objects.get(slug=sub_category_slug).delete()
 
         return JsonResponse(
             {

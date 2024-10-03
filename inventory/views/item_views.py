@@ -210,7 +210,7 @@ def updateItem(request, item_slug):
             for field in data:
                 if field == 'slug':
                     continue
-                else:
+                elif field in item.__dict__.keys():
                     setattr(item, field, data[field])
 
             item.save()
@@ -270,8 +270,7 @@ def deleteItem(request, item_slug):
                 {"error": f"Request method {request.method} not allowed, use DELETE"}, status=405
             )
 
-        item_to_delete = Item.objects.get(slug=item_slug)
-        item_to_delete.delete()
+        Item.objects.get(slug=item_slug).delete()
 
         return JsonResponse(
             {"message": f"The item with slug {item_slug} has been deleted succesfully"}, status=204

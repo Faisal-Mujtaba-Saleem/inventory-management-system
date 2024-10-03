@@ -177,8 +177,7 @@ def deleteCategory(request, category_slug):
                 status=405
             )
 
-        category = Category.objects.get(slug=category_slug)
-        category.delete()
+        Category.objects.get(slug=category_slug).delete()
 
         return JsonResponse(
             {

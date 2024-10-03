@@ -114,6 +114,10 @@ class Stock(models.Model):
         verbose_name='Item'
     )
     qty_in_stock = models.PositiveIntegerField(default=0)
+    recordedAt = models.DateTimeField(
+        verbose_name="recordedAt",
+        auto_now_add=True
+    )
     last_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -131,7 +135,15 @@ class Supplier(models.Model):
     phone = models.CharField(
         verbose_name="Phone Number",
         unique=True,
-        max_length=20
+        max_length=15
+    )
+    recordedAt = models.DateTimeField(
+        verbose_name="recordedAt",
+        auto_now_add=True
+    )
+    updatedAt = models.DateTimeField(
+        verbose_name="updatedAt",
+        auto_now=True
     )
 
     def __str__(self):
@@ -151,7 +163,15 @@ class Supply(models.Model):
         on_delete=models.CASCADE
     )
     qty_supplied = models.PositiveIntegerField(default=0)
-    last_updated = models.DateTimeField(auto_now=True)
+
+    recordedAt = models.DateTimeField(
+        verbose_name="recordedAt",
+        auto_now_add=True
+    )
+    updatedAt = models.DateTimeField(
+        verbose_name="updatedAt",
+        auto_now=True
+    )
 
     def save(self, *args, **kwargs):
         stock = Stock.objects.filter(item=self.item).first()
