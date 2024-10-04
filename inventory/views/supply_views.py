@@ -1,8 +1,8 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
-from inventory.models import Item, Supply, Supplier
 from django.core.paginator import Paginator
+from inventory.models import Item, Supply, Supplier
 from inventory.myutils import populateRelationalFields
 import json
 
@@ -20,7 +20,25 @@ def listSupply(request):
         Exception: If there is an error with the database query
     """
     try:
-        supply_queryset = Supply.objects.all()
+        supply_queryset = Supply.objects.all().order_by('pk')
+
+        page = request.GET.get('page', 0)
+        page = int(page)
+
+        pagesize = request.GET.get('pagesize', 0)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {
+                    "error": "Invalid page or pagesize."
+                },
+                status=400
+            )
+        
+        paginator = Paginator(supply_queryset, pagesize)
+        page_object = paginator.get_page(page)
+
 
         page = request.GET.get('page', 0)
         page = int(page)
