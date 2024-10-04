@@ -160,31 +160,57 @@ urlpatterns = [
     path(
         'supplier/',
         view=supplier_views.listSupplier,
-        name='list-items'  # Listing all items
+        name='list-items'  # List all items
     ),
-
     path(
         'supplier/create/<str:item_slug>/',
         view=supplier_views.createSupplier,
-        name='create-supplier'  # Creating a new supplier
+        name='create-supplier'  # Create a new supplier
     ),
-
     path(
         'supplier/retrieve/<int:pk>/',
-        view=supplier_views.retrieveSupplier,
-        name='retrieve-item'  # Retrieve an item by slug
+        view=supplier_views.retrieveSupplierById,
+        name='retrieve-item'  # Retrieve a supplier by id
     ),
-
+    path(
+        'supplier/retrieve/email/<str:email>/',
+        view=supplier_views.retrieveSupplierByEmail,
+        name='retrieve-item'  # Retrieve a supplier by email
+    ),
+    path(
+        'supplier/retrieve/phone/<str:phone>/',
+        view=supplier_views.retrieveSupplierByPhone,
+        name='retrieve-item'  # Retrieve a supplier by phone
+    ),
     path(
         'supplier/update/<int:pk>/',
-        view=supplier_views.updateSupplier,
-        name='update-item'  # Update an item by slug
+        view=supplier_views.updateSupplierById,
+        name='update-supplier'  # Update a supplier by id
     ),
-
+    path(
+        'supplier/update/email/<str:email>/',
+        view=supplier_views.updateSupplierByEmail,
+        name='update-supplier-by-email'  # Update a supplier by email
+    ),
+    path(
+        'supplier/update/phone/<str:phone>/',
+        view=supplier_views.updateSupplierByPhone,
+        name='update-supplier-by-phone'  # Update a supplier by phone
+    ),
     path(
         'supplier/delete/<int:pk>/',
-        view=supplier_views.deleteSupplier,
-        name='delete-item'  # Delete an item by slug
+        view=supplier_views.deleteSupplierById,
+        name='delete-supplier'  # Delete a supplier by id
+    ),
+    path(
+        'supplier/deleteemail/<str:email>/',
+        view=supplier_views.deleteSupplierByEmail,
+        name='delete-supplier-by-email'  # Delete a supplier by email
+    ),
+    path(
+        'supplier/delete/phone/<str:phone>/',
+        view=supplier_views.deleteSupplierByPhone,
+        name='delete-supplier-by-phone'  # Delete a supplier by phone
     ),
 
     # Supply Endpoints

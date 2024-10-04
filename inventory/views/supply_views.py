@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from inventory.models import Item, Supply, Supplier
+from django.core.paginator import Paginator
 from inventory.myutils import populateRelationalFields
 import json
 
@@ -20,8 +21,26 @@ def listSupply(request):
     """
     try:
         supply_queryset = Supply.objects.all()
+
+        page = request.GET.get('page', 0)
+        page = int(page)
+
+        pagesize = request.GET.get('pagesize', 0)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {
+                    "error": "Invalid page or pagesize."
+                },
+                status=400
+            )
+        
+        paginator = Paginator(supply_queryset, pagesize)
+        page_object = paginator.get_page(page)
+
         supply_list = json.loads(
-            serialize('json', supply_queryset)
+            serialize('json', page_object.object_list)
         )
 
         populateRelationalFields(
@@ -31,7 +50,11 @@ def listSupply(request):
         return JsonResponse(
             {
                 "message": f"Successfully retrieved all supplies",
-                "supplies": supply_list
+                "page": page,
+                "pagesize": pagesize,
+                "total_pages": paginator.num_pages,
+                "total_results": paginator.count,
+                "categories": supply_list
             },
             status=200
         )
