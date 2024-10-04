@@ -23,9 +23,9 @@ def listSupply(request):
         supply_queryset = Supply.objects.all().order_by('pk')
 
         page = request.GET.get('page', 0)
-        page = int(page)
-
         pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
         pagesize = int(pagesize)
 
         if page <= 0 or pagesize <= 0:
@@ -72,7 +72,7 @@ def listSupply(request):
                 "pagesize": pagesize,
                 "total_pages": paginator.num_pages,
                 "total_results": paginator.count,
-                "categories": supply_list
+                "supplies": supply_list
             },
             status=200
         )
@@ -107,7 +107,7 @@ def retrieveSupply(request, pk):
         return JsonResponse(
             {
                 "message": f"Successfully retrieved the supply with id {pk}",
-                "item_supply": supply_retrieved
+                "supply": supply_retrieved
             },
             status=200
         )

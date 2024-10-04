@@ -20,7 +20,7 @@ def listCategories(request):
         Exception: If there is an error with the database query
     """
     try:
-        categories_queryset = Category.objects.all()
+        categories_queryset = Category.objects.all().order_by('pk')
 
         page = request.GET.get('page', 0)
         pagesize = request.GET.get('pagesize', 0)

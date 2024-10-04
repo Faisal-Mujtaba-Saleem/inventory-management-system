@@ -17,7 +17,7 @@ def listItems(request):
         JsonResponse: A list of all items in the database
     """
     try:
-        items_queryset = Item.objects.all()
+        items_queryset = Item.objects.all().order_by('pk')
 
         page = request.GET.get('page', 0)
         pagesize = request.GET.get('pagesize', 0)

@@ -1,5 +1,5 @@
 from django.urls import path
-from inventory.views import item_views, stock_views, category_views, subcategory_views, supplier_views, supply_views, search_filter_views
+from inventory.views import item_views, stock_views, category_views, subcategory_views, supplier_views, supply_views, item_filter_views, stock_filter_views, supply_filter_views
 
 urlpatterns = [
     # Items Enpoints.
@@ -32,54 +32,82 @@ urlpatterns = [
 
     # Filter Endpoints
 
+    # Item Filters
+
     path(
         'items/category/<str:category_slug>/',
-        view=search_filter_views.listItemsByCategory,
+        view=item_filter_views.listItemsByCategory,
         name='list-items-by-category'  # List items by category
     ),
     path(
         'items/sub-category/<str:sub_category_slug>/',
-        view=search_filter_views.listItemsBySubCategory,
+        view=item_filter_views.listItemsBySubCategory,
         name='list-items-by-subcategory'  # List items by sub-category
     ),
     path(
         'items/min-price/<int:min_price>/',
-        view=search_filter_views.listItemsByMinPrice,
+        view=item_filter_views.listItemsByMinPrice,
         name='list-items-by-min-price'  # List items by min price
     ),
     path(
         'items/max-price/<int:max_price>/',
-        view=search_filter_views.listItemsByMaxPrice,
+        view=item_filter_views.listItemsByMaxPrice,
         name='list-items-by-max-price'  # List items by max price
     ),
     path(
-        'stocks/min-qty/<int:min_qty>/',
-        view=search_filter_views.listStocksByMinQty,
-        name='list-stocks-by-min-quantity'  # List stocks by minimum quantity
-    ),
-    path(
-        'stocks/max-qty/<int:max_qty>/',
-        view=search_filter_views.listStocksByMaxQty,
-        name='list-stocks-by-max-quantity'  # List stocks by maximum quantity
-    ),
-    path(
         'items/price-min-max/<int:min_price>/<int:max_price>/',
-        view=search_filter_views.listItemsFromMinToMaxPrice,
+        view=item_filter_views.listItemsFromMinToMaxPrice,
         name='list-items-between-min-max-price'  # List items within a price range
     ),
     path(
         'items/price-max-min/<int:max_price>/<int:min_price>/',
-        view=search_filter_views.listItemsFromMaxToMinPrice,
+        view=item_filter_views.listItemsFromMaxToMinPrice,
         name='list-items-between-max-min-price'  # List items within a price range
+    ),
+
+    # Stock Filters
+
+    path(
+        'stocks/min-qty/<int:min_qty>/',
+        view=stock_filter_views.listStocksByMinQty,
+        name='list-stocks-by-min-quantity'  # List stocks by minimum quantity
+    ),
+    path(
+        'stocks/max-qty/<int:max_qty>/',
+        view=stock_filter_views.listStocksByMaxQty,
+        name='list-stocks-by-max-quantity'  # List stocks by maximum quantity
     ),
     path(
         'stocks/qty-range-min-max/<int:min_qty>/<int:max_qty>/',
-        view=search_filter_views.listStocksFromMinToMaxQty,
+        view=stock_filter_views.listStocksFromMinToMaxQty,
         name='list-items-between-qty-range'  # List items within a quantity range
     ),
     path(
         'stocks/qty-range-max-min/<int:max_qty>/<int:min_qty>/',
-        view=search_filter_views.listStocksFromMaxToMinQty,
+        view=stock_filter_views.listStocksFromMaxToMinQty,
+        name='list-items-between-qty-range'  # List items within a quantity range
+    ),
+
+    # Supply Filters
+
+    path(
+        'supply/min-qty/<int:min_qty>/',
+        view=supply_filter_views.listSupplyByMinQty,
+        name='list-supplies-by-min-quantity'  # List supplies by minimum quantity
+    ),
+    path(
+        'supply/max-qty/<int:max_qty>/',
+        view=supply_filter_views.listSupplyByMaxQty,
+        name='list-supplies-by-max-quantity'  # List supplies by maximum quantity
+    ),
+    path(
+        'supply/qty-range-min-max/<int:min_qty>/<int:max_qty>/',
+        view=supply_filter_views.listSupplyFromMinToMaxQty,
+        name='list-items-between-qty-range'  # List items within a quantity range
+    ),
+    path(
+        'supply/qty-range-max-min/<int:max_qty>/<int:min_qty>/',
+        view=supply_filter_views.listSupplyFromMaxToMinQty,
         name='list-items-between-qty-range'  # List items within a quantity range
     ),
 
@@ -87,7 +115,7 @@ urlpatterns = [
 
     path(
         'items/search/',
-        view=search_filter_views.searchItems,
+        view=item_filter_views.searchItems,
         name='search-items'  # Search items
     ),
 
@@ -203,7 +231,7 @@ urlpatterns = [
         name='delete-supplier'  # Delete a supplier by id
     ),
     path(
-        'supplier/deleteemail/<str:email>/',
+        'supplier/delete/email/<str:email>/',
         view=supplier_views.deleteSupplierByEmail,
         name='delete-supplier-by-email'  # Delete a supplier by email
     ),

@@ -67,6 +67,36 @@ def registerUser(request):
         return JsonResponse({"status": "failed", "message": "An error occurred while registering. Please try again."}, status=500)
 
 
+# List Users
+
+@csrf_exempt
+@login_required
+@validateToken
+def listUsers(request):
+    try:
+        if request.user.is_superuser:
+            users = json.loads(
+                serialize(
+                    'json', User.objects.all()
+                )
+            )
+
+            return JsonResponse(
+                {
+                    "status": "success",
+                    "message": "Users retrieved successfully",
+                    "users": users
+                }
+            )
+        
+        return JsonResponse(
+            {"status": "failed", "message": "Unauthorized access"}, status=401
+        )
+
+    except Exception as e:
+        raise e
+
+
 # Retrieve user information
 
 @csrf_exempt
