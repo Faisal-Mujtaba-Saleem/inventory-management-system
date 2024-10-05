@@ -6,6 +6,28 @@ from django.http import Http404, HttpResponseForbidden, HttpResponseNotFound
 from django.http import JsonResponse
 
 
+def api_login_required(view_fn):
+    @wraps(view_fn)
+    def modified_view(request, *args, **kwargs):
+        try:
+            if request.user.is_authenticated or not request.user.is_anonymous:
+                return view_fn(request, *args, **kwargs)
+            
+            return JsonResponse({"status": "failed", "message": "Unauthorized"}, status=401)
+
+        except Exception as e:
+            print(str(e))
+            return JsonResponse(
+                {
+                    "status": "failed",
+                    "message": "Something went wrong"
+                },
+                status=500
+            )
+
+    return modified_view
+
+
 def validateToken(view_fn):
     @wraps(view_fn)
     def modified_view(request, *args, **kwargs):
@@ -30,16 +52,14 @@ def validateToken(view_fn):
                 return HttpResponseForbidden('Unauthorized User')
 
             # Unauthorized authkey because of invalid authkey, its None or not start with Bearer
-            return HttpResponseForbidden('Unauthorized AuthKey')
+            return HttpResponseForbidden('Unauthorized AuthKey or AuthKey not provided')
 
         except Http404:
             # Unauthorized AuthKey because of invalid authkey, not found any token associated with authkey
             return HttpResponseNotFound('Unauthorized AuthKey')
 
         except Exception as e:
-            print(
-                str(e)
-            )
+            print(str(e))
             return JsonResponse(
                 {
                     "status": "failed",

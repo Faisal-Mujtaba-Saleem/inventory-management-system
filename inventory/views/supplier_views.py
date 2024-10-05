@@ -2,13 +2,25 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from django.core.paginator import Paginator
+from users.myutils import validateToken, api_login_required
 from inventory.models import Item, Supply, Supplier, Stock
 import json
 
 
 # Supplier Views
 
+@api_login_required
+@validateToken
 def listSupplier(request):
+    """
+    Retrieves a list of all suppliers in the inventory.
+
+    Returns:
+        JsonResponse: A JSON response containing a list of suppliers
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
     try:
         suppliers = Supplier.objects.all().order_by('pk')
 
@@ -51,6 +63,8 @@ def listSupplier(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@api_login_required
+@validateToken
 def retrieveSupplierById(request, pk):
     """
     Retrieves a supplier by id.
@@ -86,7 +100,19 @@ def retrieveSupplierById(request, pk):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@api_login_required
+@validateToken
 def retrieveSupplierByEmail(request, email):
+    """
+    Retrieves a supplier by email.
+
+    Args:
+        request: The request object
+        email: The email of the supplier to retrieve
+
+    Returns:
+        JsonResponse: A JSON response containing the supplier object or error message
+    """
     try:
         supplier = Supplier.objects.get(email=email)
         supplier = json.loads(
@@ -112,7 +138,19 @@ def retrieveSupplierByEmail(request, email):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@api_login_required
+@validateToken
 def retrieveSupplierByPhone(request, phone):
+    """
+    Retrieves a supplier by phone.
+
+    Args:
+        request: The request object
+        phone: The phone of the supplier to retrieve
+
+    Returns:
+        JsonResponse: A JSON response containing the supplier object or error message
+    """
     try:
         supplier = Supplier.objects.get(phone=phone)
         supplier = json.loads(
@@ -139,7 +177,19 @@ def retrieveSupplierByPhone(request, phone):
 
 
 @csrf_exempt
+@api_login_required
+@validateToken
 def createSupplier(request, item_slug):
+    """
+    Creates a supplier and a related supply record for an item.
+
+    Args:
+        request: The request object
+        item_slug: The slug of the item to create the supplier for
+
+    Returns:
+        JsonResponse: A JSON response containing the created supplier object or error message
+    """
     try:
         if request.method != 'POST':
             return JsonResponse(
@@ -199,7 +249,23 @@ def createSupplier(request, item_slug):
 
 
 @csrf_exempt
+@api_login_required
+@validateToken
 def updateSupplierById(request, pk):
+    """
+    Updates a supplier by id.
+
+    Args:
+        request: The request object
+        pk: The id of the supplier to update
+
+    Returns:
+        JsonResponse: A JSON response containing the updated supplier object or error message
+
+    Raises:
+        Exception: If there is an error with the database query
+
+    """
     try:
         if request.method not in ['PUT', 'PATCH']:
             return JsonResponse({"error": f"Request method {request.method} not allowed, use PUT or PATCH"}, status=405)
@@ -237,7 +303,22 @@ def updateSupplierById(request, pk):
 
 
 @csrf_exempt
+@api_login_required
+@validateToken
 def updateSupplierByEmail(request, email):
+    """
+    Updates a supplier by email.
+
+    Args:
+        request: The request object
+        email: The email of the supplier to update
+
+    Returns:
+        JsonResponse: A JSON response containing the updated supplier object or error message
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
     try:
         if request.method not in ['PUT', 'PATCH']:
             return JsonResponse({"error": f"Request method {request.method} not allowed, use PUT or PATCH"}, status=405)
@@ -275,7 +356,22 @@ def updateSupplierByEmail(request, email):
 
 
 @csrf_exempt
+@api_login_required
+@validateToken
 def updateSupplierByPhone(request, phone):
+    """
+    Updates a supplier by phone number.
+
+    Args:
+        request: The request object
+        phone: The phone number of the supplier to update
+
+    Returns:
+        JsonResponse: A JSON response containing the updated supplier object or error message
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
     try:
         if request.method not in ['PUT', 'PATCH']:
             return JsonResponse({"error": f"Request method {request.method} not allowed, use PUT or PATCH"}, status=405)
@@ -313,16 +409,21 @@ def updateSupplierByPhone(request, phone):
 
 
 @csrf_exempt
+@api_login_required
+@validateToken
 def deleteSupplierById(request, pk):
     """
-    Delete a supplier by slug.
+    Deletes a supplier by id.
 
     Args:
         request: The request object
-        supplier_slug: The slug of the supplier to delete
+        pk: The id of the supplier to delete
 
     Returns:
-        JsonResponse: A success message if deleted, or error message if not found
+        JsonResponse: A JSON response containing the success message or error message
+
+    Raises:
+        Exception: If there is an error with the database query
     """
     try:
         if request.method != 'DELETE':
@@ -342,16 +443,21 @@ def deleteSupplierById(request, pk):
 
 
 @csrf_exempt
+@api_login_required
+@validateToken
 def deleteSupplierByEmail(request, email):
     """
-    Delete a supplier by slug.
+    Deletes a supplier by email.
 
     Args:
         request: The request object
-        supplier_slug: The slug of the supplier to delete
+        email: The email of the supplier to delete
 
     Returns:
-        JsonResponse: A success message if deleted, or error message if not found
+        JsonResponse: A JSON response containing the success message or error message
+
+    Raises:
+        Exception: If there is an error with the database query
     """
     try:
         if request.method != 'DELETE':
@@ -371,16 +477,21 @@ def deleteSupplierByEmail(request, email):
 
 
 @csrf_exempt
+@api_login_required
+@validateToken
 def deleteSupplierByPhone(request, phone):
     """
-    Delete a supplier by slug.
+    Deletes a supplier by phone.
 
     Args:
         request: The request object
-        supplier_slug: The slug of the supplier to delete
+        phone: The phone of the supplier to delete
 
     Returns:
-        JsonResponse: A success message if deleted, or error message if not found
+        JsonResponse: A JSON response containing the success message or error message
+
+    Raises:
+        Exception: If there is an error with the database query
     """
     try:
         if request.method != 'DELETE':

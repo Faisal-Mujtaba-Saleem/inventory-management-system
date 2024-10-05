@@ -2,13 +2,16 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
+from users.myutils import validateToken, api_login_required
 from inventory.models import Item, Category, SubCategory, Stock
 from inventory.myutils import populateRelationalFields
 import json
 
 
 # # Item views
-
+@api_login_required
+@validateToken
 def listItems(request):
     """
     Return a list of all items in the database.
@@ -53,13 +56,14 @@ def listItems(request):
             },
             status=200
         )
-
+    
     except Exception as e:
         return JsonResponse(
             {"error": str(e)}, status=500
         )
 
-
+@api_login_required
+@validateToken
 def retrieveItem(request, item_slug):
     """
     Retrieve a specific item by slug.
@@ -105,6 +109,8 @@ def retrieveItem(request, item_slug):
         )
 
 
+@api_login_required
+@validateToken
 @csrf_exempt
 def createItem(request):
     """
@@ -180,6 +186,8 @@ def createItem(request):
         )
 
 
+@api_login_required
+@validateToken
 @csrf_exempt
 def updateItem(request, item_slug):
     """
@@ -248,6 +256,8 @@ def updateItem(request, item_slug):
         )
 
 
+@api_login_required
+@validateToken
 @csrf_exempt
 def deleteItem(request, item_slug):
     """

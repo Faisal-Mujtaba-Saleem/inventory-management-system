@@ -10,4 +10,4 @@ urlpatterns = [
     path('update/', views.updateUser, name='update'),
     path('delete/', views.deleteUser, name='delete'),
     path("refresh-authkey/", views.refreshAuthKey, name="refresh-authkey"),
-]
+    ]

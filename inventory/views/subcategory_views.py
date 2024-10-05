@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from django.core.paginator import Paginator
+from users.myutils import validateToken, api_login_required
 from inventory.models import Category, SubCategory
 from inventory.myutils import populateRelationalFields
 import json
@@ -9,7 +10,8 @@ import json
 
 # Sub-Category Views
 
-@csrf_exempt
+@api_login_required
+@validateToken
 def listSubCategories(request):
     """
     Retrieves a list of all sub-categories in the inventory.
@@ -59,7 +61,8 @@ def listSubCategories(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-@csrf_exempt
+@api_login_required
+@validateToken
 def retrieveSubCategory(request, sub_category_slug):
     """
     Retrieves a specific sub-category by its slug.
@@ -102,7 +105,10 @@ def retrieveSubCategory(request, sub_category_slug):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-@csrf_exempt
+
+
+@api_login_required
+@validateToken
 def updateSubCategory(request, sub_category_slug):
     """
     Updates a sub-category with given slug.
@@ -167,7 +173,10 @@ def updateSubCategory(request, sub_category_slug):
         )
 
 
-@csrf_exempt
+
+
+@api_login_required
+@validateToken
 def deleteSubCategory(request, sub_category_slug):
     """
     Deletes a sub_category by slug.

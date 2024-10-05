@@ -182,13 +182,17 @@ class Supply(models.Model):
 
                 return super().save(*args, **kwargs)
             else:
-                self.supplier.delete()
+                if self.pk is None:
+                    self.supplier.delete()
+
                 raise ValueError(
                     f"Insufficient stock for item {self.item.name}. Available: {
                         stock.qty_in_stock}, requested: {self.qty_supplied}"
                 )
         else:
-            self.supplier.delete()
+            if self.pk is None:
+                self.supplier.delete()
+                    
             raise Exception(f"Stock not found for item {self.item.name}")
 
     def __str__(self):

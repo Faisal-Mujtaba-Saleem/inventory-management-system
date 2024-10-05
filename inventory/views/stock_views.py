@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from django.core.paginator import Paginator
+from users.myutils import validateToken, api_login_required
 from inventory.models import Item, Stock
 from inventory.myutils import populateRelationalFields
 import json
@@ -9,6 +10,8 @@ import json
 
 # Stock views
 
+@api_login_required
+@validateToken
 def listStocks(request):
     """
     Retrieves a list of all stocks in the inventory.
@@ -57,6 +60,8 @@ def listStocks(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@api_login_required
+@validateToken
 def retrieveStock(request, item_slug):
     """
     Retrieves a stock from the inventory by item-slug.
@@ -96,6 +101,9 @@ def retrieveStock(request, item_slug):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+
+@api_login_required
+@validateToken
 @csrf_exempt
 def updateStock(request, item_slug):
     """

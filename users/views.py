@@ -1,12 +1,11 @@
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.serializers import serialize
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
 from .models import Token
-from .myutils import validateToken
+from .myutils import validateToken, api_login_required
 
 
 # Views for users
@@ -69,9 +68,9 @@ def registerUser(request):
 
 # List Users
 
-@csrf_exempt
-@login_required
+@api_login_required
 @validateToken
+@csrf_exempt
 def listUsers(request):
     try:
         if request.user.is_superuser:
@@ -99,9 +98,9 @@ def listUsers(request):
 
 # Retrieve user information
 
-@csrf_exempt
-@login_required
+@api_login_required
 @validateToken
+@csrf_exempt
 def retrieveUser(request):
     try:
         user = json.loads(
@@ -164,9 +163,9 @@ def loginUser(request):
 
 # Logout user
 
-@csrf_exempt
-@login_required
+@api_login_required
 @validateToken
+@csrf_exempt
 def logoutUser(request):
     try:
         if request.method == 'POST':
@@ -196,9 +195,9 @@ def logoutUser(request):
 
 # Update user details
 
-@csrf_exempt
-@login_required
+@api_login_required
 @validateToken
+@csrf_exempt
 def updateUser(request):
     try:
         if request.method in ['PUT', 'PATCH']:
@@ -242,9 +241,9 @@ def updateUser(request):
 
 # Delete user account
 
-@csrf_exempt
-@login_required
+@api_login_required
 @validateToken
+@csrf_exempt
 def deleteUser(request):
     try:
         if request.method == 'DELETE':
@@ -274,9 +273,9 @@ def deleteUser(request):
 
 # Refresh authentication key
 
-@csrf_exempt
-@login_required
+@api_login_required
 @validateToken
+@csrf_exempt
 def refreshAuthKey(request):
     try:
         if request.method == 'POST':

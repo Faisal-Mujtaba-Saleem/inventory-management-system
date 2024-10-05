@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from django.core.paginator import Paginator
+from users.myutils import validateToken, api_login_required
 from inventory.models import Item, Category, SubCategory, Stock
 from inventory.myutils import populateRelationalFields
 import json
@@ -9,6 +10,8 @@ import json
 
 # Item-Filter Views.
 
+@api_login_required
+@validateToken
 def listItemsByCategory(request, category_slug):
     """
     List all items filtered by category.
@@ -75,6 +78,8 @@ def listItemsByCategory(request, category_slug):
         )
 
 
+@api_login_required
+@validateToken
 def listItemsBySubCategory(request, sub_category_slug):
     """
     List all items filtered by sub-category.
@@ -137,6 +142,8 @@ def listItemsBySubCategory(request, sub_category_slug):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@api_login_required
+@validateToken
 def listItemsByMinPrice(request, min_price):
     """
     Retrieves a list of items from the inventory filtered by min price.
@@ -190,6 +197,8 @@ def listItemsByMinPrice(request, min_price):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@api_login_required
+@validateToken
 def listItemsByMaxPrice(request, max_price):
     """
     Retrieves a list of items from the inventory filtered by max price.
@@ -244,6 +253,8 @@ def listItemsByMaxPrice(request, max_price):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@api_login_required
+@validateToken
 def listItemsFromMinToMaxPrice(request, min_price, max_price):
     try:
         items_from_min_to_max_price = Item.objects.filter(
@@ -288,6 +299,8 @@ def listItemsFromMinToMaxPrice(request, min_price, max_price):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@api_login_required
+@validateToken
 def listItemsFromMaxToMinPrice(request, max_price, min_price):
     try:
         items_from_max_to_min_price = Item.objects.filter(
@@ -332,6 +345,9 @@ def listItemsFromMaxToMinPrice(request, max_price, min_price):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+
+@api_login_required
+@validateToken
 @csrf_exempt
 def searchItems(request):
     """

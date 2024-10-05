@@ -2,13 +2,15 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from django.core.paginator import Paginator
+from users.myutils import validateToken, api_login_required
 from inventory.models import Category
 import json
 
 
 # Category views
 
-@csrf_exempt
+@api_login_required
+@validateToken
 def listCategories(request):
     """
     Retrieves a list of all categories in the inventory.
@@ -55,8 +57,8 @@ def listCategories(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-
-@csrf_exempt
+@api_login_required
+@validateToken
 def retrieveCategory(request, category_slug):
     """
     Retrieves a category from the inventory by slug.
@@ -93,6 +95,8 @@ def retrieveCategory(request, category_slug):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@api_login_required
+@validateToken
 @csrf_exempt
 def updateCategory(request, category_slug):
     """
@@ -153,6 +157,8 @@ def updateCategory(request, category_slug):
         )
 
 
+@api_login_required
+@validateToken
 @csrf_exempt
 def deleteCategory(request, category_slug):
     """

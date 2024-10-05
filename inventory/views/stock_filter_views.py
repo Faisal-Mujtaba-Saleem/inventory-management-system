@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from django.core.paginator import Paginator
+from users.myutils import validateToken,api_login_required
 from inventory.models import Item, Stock
 from inventory.myutils import populateRelationalFields
 import json
@@ -9,7 +10,21 @@ import json
 
 # Stock Filter views
 
-def listStocksByMinQty(request, min_qty):
+@api_login_required
+@validateToken
+def listStocksByMinQty(request, min_qty):        
+    """
+    Retrieves a list of all stocks in the inventory filtered by min quantity.
+
+    Args:
+        min_qty (int): The minimum quantity to filter the stocks by
+
+    Returns:
+        JsonResponse: A JSON response containing a list of stocks
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
     try:
         min_qty_stocks = Stock.objects.filter(qty_in_stock__gte=min_qty).order_by('qty_in_stock')
 
@@ -49,7 +64,21 @@ def listStocksByMinQty(request, min_qty):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@api_login_required
+@validateToken
 def listStocksByMaxQty(request, max_qty):
+    """
+    Retrieves a list of all stocks in the inventory filtered by max quantity.
+
+    Args:
+        max_qty (int): The maximum quantity to filter the stocks by
+
+    Returns:
+        JsonResponse: A JSON response containing a list of stocks
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
     try:
         max_qty_stocks = Stock.objects.filter(qty_in_stock__lte=max_qty).order_by('qty_in_stock')
 
@@ -89,7 +118,22 @@ def listStocksByMaxQty(request, max_qty):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@api_login_required
+@validateToken
 def listStocksFromMaxToMinQty(request, max_qty, min_qty):
+    """
+        Retrieves a list of all stocks in the inventory filtered by min and max quantity.
+
+        Args:
+            min_qty (int): The minimum quantity to filter the stocks by
+            max_qty (int): The maximum quantity to filter the stocks by
+
+        Returns:
+            JsonResponse: A JSON response containing a list of stocks
+
+        Raises:
+            Exception: If there is an error with the database query
+    """        
     try:
         stocks_from_min_to_max_qty = Stock.objects.filter(
             qty_in_stock__lte=max_qty,
@@ -136,7 +180,22 @@ def listStocksFromMaxToMinQty(request, max_qty, min_qty):
         )
 
 
+@api_login_required
+@validateToken
 def listStocksFromMinToMaxQty(request, min_qty, max_qty):
+    """
+    Retrieves a list of all stocks in the inventory filtered by min and max quantity.
+
+    Args:
+        min_qty (int): The minimum quantity to filter the stocks by
+        max_qty (int): The maximum quantity to filter the stocks by
+
+    Returns:
+        JsonResponse: A JSON response containing a list of stocks
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
     try:
         stocks_from_min_to_max_qty = Stock.objects.filter(
             qty_in_stock__gte=min_qty,
