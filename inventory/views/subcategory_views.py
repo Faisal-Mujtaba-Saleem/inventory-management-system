@@ -109,6 +109,7 @@ def retrieveSubCategory(request, sub_category_slug):
 
 @api_login_required
 @validateToken
+@csrf_exempt
 def updateSubCategory(request, sub_category_slug):
     """
     Updates a sub-category with given slug.
@@ -177,6 +178,7 @@ def updateSubCategory(request, sub_category_slug):
 
 @api_login_required
 @validateToken
+@csrf_exempt
 def deleteSubCategory(request, sub_category_slug):
     """
     Deletes a sub_category by slug.

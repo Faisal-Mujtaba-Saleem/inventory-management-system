@@ -390,7 +390,7 @@ def searchItems(request):
             Category, SubCategory]
         )
 
-        return JsonResponse({"name": items})
+        return JsonResponse({"items": items})
 
     except Category.DoesNotExist:
         return JsonResponse({"error": "Category does not exist"}, status=404)

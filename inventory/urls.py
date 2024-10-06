@@ -30,95 +30,6 @@ urlpatterns = [
         name='delete-item'  # Delete an item by slug
     ),
 
-    # Filter Endpoints
-
-    # Item Filters
-
-    path(
-        'items/category/<str:category_slug>/',
-        view=item_filter_views.listItemsByCategory,
-        name='list-items-by-category'  # List items by category
-    ),
-    path(
-        'items/sub-category/<str:sub_category_slug>/',
-        view=item_filter_views.listItemsBySubCategory,
-        name='list-items-by-subcategory'  # List items by sub-category
-    ),
-    path(
-        'items/min-price/<int:min_price>/',
-        view=item_filter_views.listItemsByMinPrice,
-        name='list-items-by-min-price'  # List items by min price
-    ),
-    path(
-        'items/max-price/<int:max_price>/',
-        view=item_filter_views.listItemsByMaxPrice,
-        name='list-items-by-max-price'  # List items by max price
-    ),
-    path(
-        'items/price-min-max/<int:min_price>/<int:max_price>/',
-        view=item_filter_views.listItemsFromMinToMaxPrice,
-        name='list-items-between-min-max-price'  # List items within a price range
-    ),
-    path(
-        'items/price-max-min/<int:max_price>/<int:min_price>/',
-        view=item_filter_views.listItemsFromMaxToMinPrice,
-        name='list-items-between-max-min-price'  # List items within a price range
-    ),
-
-    # Stock Filters
-
-    path(
-        'stocks/min-qty/<int:min_qty>/',
-        view=stock_filter_views.listStocksByMinQty,
-        name='list-stocks-by-min-quantity'  # List stocks by minimum quantity
-    ),
-    path(
-        'stocks/max-qty/<int:max_qty>/',
-        view=stock_filter_views.listStocksByMaxQty,
-        name='list-stocks-by-max-quantity'  # List stocks by maximum quantity
-    ),
-    path(
-        'stocks/qty-range-min-max/<int:min_qty>/<int:max_qty>/',
-        view=stock_filter_views.listStocksFromMinToMaxQty,
-        name='list-items-between-qty-range'  # List items within a quantity range
-    ),
-    path(
-        'stocks/qty-range-max-min/<int:max_qty>/<int:min_qty>/',
-        view=stock_filter_views.listStocksFromMaxToMinQty,
-        name='list-items-between-qty-range'  # List items within a quantity range
-    ),
-
-    # Supply Filters
-
-    path(
-        'supply/min-qty/<int:min_qty>/',
-        view=supply_filter_views.listSupplyByMinQty,
-        name='list-supplies-by-min-quantity'  # List supplies by minimum quantity
-    ),
-    path(
-        'supply/max-qty/<int:max_qty>/',
-        view=supply_filter_views.listSupplyByMaxQty,
-        name='list-supplies-by-max-quantity'  # List supplies by maximum quantity
-    ),
-    path(
-        'supply/qty-range-min-max/<int:min_qty>/<int:max_qty>/',
-        view=supply_filter_views.listSupplyFromMinToMaxQty,
-        name='list-items-between-qty-range'  # List items within a quantity range
-    ),
-    path(
-        'supply/qty-range-max-min/<int:max_qty>/<int:min_qty>/',
-        view=supply_filter_views.listSupplyFromMaxToMinQty,
-        name='list-items-between-qty-range'  # List items within a quantity range
-    ),
-
-    # Search Endpoint
-
-    path(
-        'items/search/',
-        view=item_filter_views.searchItems,
-        name='search-items'  # Search items
-    ),
-
     # Category Endpoints
 
     path(
@@ -262,5 +173,115 @@ urlpatterns = [
         'supply/delete/<int:pk>/',
         view=supply_views.deleteSupply,
         name='delete-supply'  # Delete supply
+    ),
+
+    
+    # Filter Endpoints
+
+    # Item Filters
+
+    path(
+        'items/category/<str:category_slug>/',
+        view=item_filter_views.listItemsByCategory,
+        name='list-items-by-category'  # List items by category
+    ),
+    path(
+        'items/sub-category/<str:sub_category_slug>/',
+        view=item_filter_views.listItemsBySubCategory,
+        name='list-items-by-subcategory'  # List items by sub-category
+    ),
+    path(
+        'items/min-price/<int:min_price>/',
+        view=item_filter_views.listItemsByMinPrice,
+        name='list-items-by-min-price'  # List items by min price
+    ),
+    path(
+        'items/max-price/<int:max_price>/',
+        view=item_filter_views.listItemsByMaxPrice,
+        name='list-items-by-max-price'  # List items by max price
+    ),
+    path(
+        'items/price-min-max/<int:min_price>/<int:max_price>/',
+        view=item_filter_views.listItemsFromMinToMaxPrice,
+        name='list-items-between-min-max-price'  # List items within a price range
+    ),
+    path(
+        'items/price-max-min/<int:max_price>/<int:min_price>/',
+        view=item_filter_views.listItemsFromMaxToMinPrice,
+        name='list-items-between-max-min-price'  # List items within a price range
+    ),
+
+    # Stock Filters
+
+    path(
+        'stocks/min-qty/<int:min_qty>/',
+        view=stock_filter_views.listStocksByMinQty,
+        name='list-stocks-by-min-quantity'  # List stocks by minimum quantity
+    ),
+    path(
+        'stocks/max-qty/<int:max_qty>/',
+        view=stock_filter_views.listStocksByMaxQty,
+        name='list-stocks-by-max-quantity'  # List stocks by maximum quantity
+    ),
+    path(
+        'stocks/qty-range-min-max/<int:min_qty>/<int:max_qty>/',
+        view=stock_filter_views.listStocksFromMinToMaxQty,
+        name='list-items-between-qty-range'  # List items within a quantity range
+    ),
+    path(
+        'stocks/qty-range-max-min/<int:max_qty>/<int:min_qty>/',
+        view=stock_filter_views.listStocksFromMaxToMinQty,
+        name='list-items-between-qty-range'  # List items within a quantity range
+    ),
+
+    # Supply Filters
+
+    path(
+        'supply/item/<slug:item_slug>/',
+        view=supply_filter_views.listSupplyByItem, 
+        name='list-supplys-by-item'
+    ),
+    path(
+        "supply/supplier/<int:supplier_id>/", 
+        view=supply_filter_views.listSupplyBySupplierId, 
+        name="list-supplys-by-supplier-id"
+    ),
+    path(
+        "supply/supplier-email/<str:supplier_email>/", 
+        view=supply_filter_views.listSupplyBySupplierEmail, 
+        name="list-supplys-by-supplier-email"
+    ),
+    path(
+        "supply/supplier-phone/<str:supplier_phone>/", 
+        view=supply_filter_views.listSupplyBySupplierPhone, 
+        name="list-supplys-by-supplier-phone"
+    ),
+    path(
+        'supply/min-qty/<int:min_qty>/',
+        view=supply_filter_views.listSupplyByMinQty,
+        name='list-supplies-by-min-quantity'  # List supplies by minimum quantity
+    ),
+    path(
+        'supply/max-qty/<int:max_qty>/',
+        view=supply_filter_views.listSupplyByMaxQty,
+        name='list-supplies-by-max-quantity'  # List supplies by maximum quantity
+    ),
+    path(
+        'supply/qty-range-min-max/<int:min_qty>/<int:max_qty>/',
+        view=supply_filter_views.listSupplyFromMinToMaxQty,
+        name='list-items-between-qty-range'  # List items within a quantity range
+    ),
+    path(
+        'supply/qty-range-max-min/<int:max_qty>/<int:min_qty>/',
+        view=supply_filter_views.listSupplyFromMaxToMinQty,
+        name='list-items-between-qty-range'  # List items within a quantity range
+    ),
+
+    # Search Endpoint
+
+    path(
+        'items/search/',
+        view=item_filter_views.searchItems,
+        name='search-items'  # Search items
     )
 ]

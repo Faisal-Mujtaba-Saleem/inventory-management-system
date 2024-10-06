@@ -10,6 +10,223 @@ import json
 
 # Supply Filter views
 
+
+@api_login_required
+@validateToken
+def listSupplyByItem(request, item_slug):
+    """
+    Retrieves a list of supply in the inventory filtered by item slug.
+
+    Args:
+        request (HttpRequest): The request object
+        item_slug (str): The slug of the item to filter the supply by
+
+    Returns:
+        JsonResponse: A JSON response containing a list of supply
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        item_supplies = Supply.objects.filter(item__slug=item_slug).order_by('qty_supplied')
+
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
+            )
+
+        paginator = Paginator(item_supplies, pagesize)
+        page_object = paginator.get_page(page)
+
+        item_supplies = json.loads(
+            serialize('json', page_object.object_list)
+        )
+
+        populateRelationalFields(item_supplies, ['item', 'supplier'], [Item, Supplier])
+
+        return JsonResponse(
+            {
+                "message": f"Successfully retrieved supply of item with slug {item_slug}",
+                "page": page,
+                "pagesize": pagesize,
+                'total_pages': paginator.num_pages,
+                "total_results": paginator.count,
+                "supply": item_supplies
+            },
+            status=200
+        )
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@api_login_required
+@validateToken
+def listSupplyBySupplierId(request, supplier_id):
+    """
+    Retrieves a list of supply in the inventory filtered by supplier id.
+
+    Args:
+        request (HttpRequest): The request object
+        supplier_id (int): The id of the supplier to filter the supply by
+
+    Returns:
+        JsonResponse: A JSON response containing a list of supply
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        supplier_supplies = Supply.objects.filter(supplier__id=supplier_id).order_by('qty_supplied')
+
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
+            )
+
+        paginator = Paginator(supplier_supplies, pagesize)
+        page_object = paginator.get_page(page)
+
+        supplier_supplies = json.loads(
+            serialize('json', page_object.object_list)
+        )
+
+        populateRelationalFields(supplier_supplies, ['item', 'supplier'], [Item, Supplier])
+
+        return JsonResponse(
+            {
+                "message": f"Successfully retrieved supply of supplier with id {supplier_id}",
+                "page": page,
+                "pagesize": pagesize,
+                'total_pages': paginator.num_pages,
+                "total_results": paginator.count,
+                "supply": supplier_supplies
+            },
+            status=200
+        )
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@api_login_required
+@validateToken
+def listSupplyBySupplierEmail(request, supplier_email):
+    """
+    Retrieves a list of supply in the inventory filtered by supplier email.
+
+    Args:
+        request (HttpRequest): The request object
+        supplier_email (str): The email of the supplier to filter the supply by
+
+    Returns:
+        JsonResponse: A JSON response containing a list of supply
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        supplier_supplies = Supply.objects.filter(supplier__email=supplier_email).order_by('qty_supplied')
+
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
+            )
+
+        paginator = Paginator(supplier_supplies, pagesize)
+        page_object = paginator.get_page(page)
+
+        supplier_supplies = json.loads(
+            serialize('json', page_object.object_list)
+        )
+
+        populateRelationalFields(supplier_supplies, ['item', 'supplier'], [Item, Supplier])
+
+        return JsonResponse(
+            {
+                "message": f"Successfully retrieved supply of supplier with email {supplier_email}",
+                "page": page,
+                "pagesize": pagesize,
+                'total_pages': paginator.num_pages,
+                "total_results": paginator.count,
+                "supply": supplier_supplies
+            },
+            status=200
+        )
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+def listSupplyBySupplierPhone(request, supplier_phone):
+    """
+    Retrieves a list of supply in the inventory filtered by supplier phone.
+
+    Args:
+        request (HttpRequest): The request object
+        supplier_phone (str): The phone number of the supplier to filter the supply by
+
+    Returns:
+        JsonResponse: A JSON response containing a list of supply
+
+    Raises:
+        Exception: If there is an error with the database query
+    """
+    try:
+        supplier_supplies = Supply.objects.filter(supplier__phone=supplier_phone).order_by('qty_supplied')
+        print(supplier_phone)
+
+        page = request.GET.get('page', 0)
+        pagesize = request.GET.get('pagesize', 0)
+
+        page = int(page)
+        pagesize = int(pagesize)
+
+        if page <= 0 or pagesize <= 0:
+            return JsonResponse(
+                {"error": "Invalid page or pagesize."}, status=400
+            )
+
+        paginator = Paginator(supplier_supplies, pagesize)
+        page_object = paginator.get_page(page)
+
+        supplier_supplies = json.loads(
+            serialize('json', page_object.object_list)
+        )
+
+        populateRelationalFields(supplier_supplies, ['item', 'supplier'], [Item, Supplier])
+
+        return JsonResponse(
+            {
+                "message": f"Successfully retrieved supply of supplier with phone {supplier_phone}",
+                "page": page,
+                "pagesize": pagesize,
+                'total_pages': paginator.num_pages,
+                "total_results": paginator.count,
+                "supply": supplier_supplies
+            },
+            status=200
+        )
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
 @api_login_required
 @validateToken
 def listSupplyByMinQty(request, min_qty):
