@@ -196,4 +196,4 @@ class Supply(models.Model):
             raise Exception(f"Stock not found for item {self.item.name}")
 
     def __str__(self):
-        return f"{self.item.name_of_item.name} - {self.qty_supplied} supplied"
+        return f"{self.item.name} - {self.qty_supplied} supplied"
