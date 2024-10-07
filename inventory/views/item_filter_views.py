@@ -171,7 +171,7 @@ def listItemsByMinPrice(request, min_price):
                 {"error": "Invalid page or pagesize."}, status=400
             )
 
-        paginator = Paginator(min_price_related_items, page, pagesize)
+        paginator = Paginator(min_price_related_items, pagesize)
         page_object = paginator.get_page(page)
 
         min_price_related_items = json.loads(
